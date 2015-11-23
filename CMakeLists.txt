@@ -89,7 +89,7 @@ macro(add_clang_plugin name)
       target_link_libraries( ${name} ${user_lib} )
    endforeach()
 
-   target_link_libraries( ${name} llvmSupport )
+   target_link_libraries( ${name} LLVMSupport )
    target_link_libraries( ${name} clangAST)
    target_link_libraries( ${name} clangBasic)
    target_link_libraries( ${name} clangAnalysis)
