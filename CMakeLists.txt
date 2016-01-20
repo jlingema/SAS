@@ -89,15 +89,6 @@ macro(add_clang_plugin name)
       target_link_libraries( ${name} ${user_lib} )
    endforeach()
 
-   target_link_libraries( ${name} LLVMSupport )
-   target_link_libraries( ${name} clangAST)
-   target_link_libraries( ${name} clangBasic)
-   target_link_libraries( ${name} clangAnalysis)
-   target_link_libraries( ${name} clangStaticAnalyzerCheckers)
-   target_link_libraries( ${name} clangLex)
-   target_link_libraries( ${name} clangStaticAnalyzerCore)
-   target_link_libraries( ${name} ncurses)
-
    install(TARGETS ${name} DESTINATION lib)
 
    set_target_properties( ${name} PROPERTIES
