@@ -20,6 +20,9 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
    message(FATAL_ERROR "In source build is not supported. Please build in a different directory.")
 endif()
 
+# Add our own cmake script directory
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # Initialize input variables
 set(LLVM_INCLUDE_DIR "" CACHE FILEPATH "LLVM include directory")
 set(LLVM_LIB_DIR "" CACHE FILEPATH "LLVM lib directory")
@@ -31,8 +34,8 @@ if (LLVM_DEV_DIR)
    set(LLVM_LIB_DIR "${LLVM_DEV_DIR}/lib")
    set(CLANG_INCLUDE_DIRS "${LLVM_DEV_DIR}/include")
 else()
-   INCLUDE(cmake/FindLLVM.cmake)
-   INCLUDE(cmake/FindClang.cmake)
+   find_package(LLVM REQUIRED)
+   find_package(Clang 3.5 REQUIRED)
 
    # Require LLVM_INCLUDE_DIR
    if (LLVM_INCLUDE_DIR)
