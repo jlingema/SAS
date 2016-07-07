@@ -57,6 +57,7 @@ def _WrapClangCommand(command, SA_CLANG_COMPILER):
    sa_checkersString = env[SA_CHECKERS] if env.has_key(SA_CHECKERS) else ""
    sa_checkers = filter(lambda name: name!='', sa_checkersString.split(":"))
    compilerArguments = command[1:]
+   sa_checker_output = ""
 
    if len(sa_checkers)>0 and "-c" in compilerArguments and not "-shared" in compilerArguments:
       sa_plugin = env[SA_PLUGIN] if env.has_key(SA_PLUGIN) else ""
@@ -82,21 +83,28 @@ def _WrapClangCommand(command, SA_CLANG_COMPILER):
                   outputToNull
 
       #print ("note:", "Invoking SA with command %s " %(" ".join(saCommand)), file=sys.stdout)
-      subprocess.call(saCommand)
+      try:
+         sa_checker_output = subprocess.check_output(saCommand, stderr=subprocess.STDOUT)
+         print(sa_checker_output)
+      except subprocess.CalledProcessError as e:
+        print ("exception occured with SA checkers:", e.output)
+   return subprocess.call(command), sa_checker_output
 
-   return subprocess.call(command)
+def _Compare(filename, clangFormatOutput, difffunction):
+    fileContentLines = open(filename,"r").read().splitlines()
+    clangFormatOutputLines = clangFormatOutput.splitlines()
+
+    diffLinesGen = difffunction(fileContentLines,
+                                        clangFormatOutputLines,
+                                        'Original File (%s)' %filename,
+                                        'Formatted File')
+    return diffLinesGen
 
 def _CompareFiles(filename, clangFormatOutput, outputType):
     '''
     Compare the formatted version of the file with the existing one.
     '''
-    fileContentLines = open(filename,"r").read().splitlines()
-    clangFormatOutputLines = clangFormatOutput.splitlines()
-
-    diffLinesGen = difflib.context_diff(fileContentLines,
-                                        clangFormatOutputLines,
-                                        fromfile='Original File (%s)' %filename,
-                                        tofile='Formatted File')
+    diffLinesGen = _Compare(filename, clangFormatOutput, difflib.context_diff)
     diffLines = list(diffLinesGen)
     nViolations = int ( sum(0.5 for line in diffLines if line[0] == '!') )
 
@@ -108,7 +116,17 @@ def _CompareFiles(filename, clangFormatOutput, outputType):
         plural = "" if nViolations == 1 else "s"
         print (_Bold(_Purple("warning:")), _Bold('%s %s%s detected.' %(nViolations,outputType,plural)), file=sys.stderr)
         print ("\n".join(diffLines), file=sys.stderr)
+        return nViolations
     return nViolations
+
+def _ComparisonReport(filename, clangFormatOutput):
+    '''
+    Compare the formatted version of the file with the existing one.
+    '''
+    differ = difflib.HtmlDiff()
+    diffLinesGen = _Compare(filename, clangFormatOutput, differ.make_table)
+
+    return diffLinesGen
 
 def _RunClangCommand(command, filename):
     '''
@@ -173,6 +191,20 @@ def Analyze(command, sa_clang_compiler):
        res = map(lambda source: ClangModernize(options,source), sources)
        returnVal = len(res)
 
-
-    returnVal += _WrapClangCommand(command, sa_clang_compiler)
+    compilation_ret, _ = _WrapClangCommand(command, sa_clang_compiler)
+    returnVal += compilation_ret
     return returnVal
+
+def CheckFormat(command, sa_clang_compiler):
+    '''
+    Perform static analysis and check of formatting rules if requested
+    '''
+    returnMap = {}
+    sources = filter(_IsSourceFile, command)
+    if os.environ.has_key("SA_FORMATTING"):
+       for source in sources:
+         clangFormatOutput = _RunClangCommand(_ClangFormatExeName, source)
+         difflines = _ComparisonReport(source, clangFormatOutput)
+         returnMap[source] = difflines
+    returnVal, output = _WrapClangCommand(command, sa_clang_compiler)
+    return returnVal, returnMap, output
