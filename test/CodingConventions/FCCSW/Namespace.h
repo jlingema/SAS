@@ -1,6 +1,3 @@
-#ifndef TESTNAMESPACENAMES
-#define TESTNAMESPACENAMES
-
 /*
 Expected Errors:
 Namespace: 3
@@ -21,5 +18,3 @@ namespace lowerCamelCaseNamespace { //Incorrect use of lowerCamelCase instead of
 namespace snake_case_namespace { //incorrect use of snake_case instead of lowercase
 
 }
-
-#endif

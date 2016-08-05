@@ -1,6 +1,3 @@
-#ifndef TESTMEMBERVARIABLES
-#define TESTMEMBERVARIABLES
-
 /*
 Expected Errors:
 Data Member Variable Name: 3
@@ -20,5 +17,3 @@ struct TestMemberVariableStruct {
 public:
   int exceptionForStructsMemberVariable; //Shouldn't raise any error; public member varibales of structs are exempt
 };
-
-#endif

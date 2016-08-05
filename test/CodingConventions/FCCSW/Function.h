@@ -1,6 +1,3 @@
-#ifndef TESTFUNCTIONNAMES
-#define TESTFUNCTIONNAMES
-
 /*
 Expected Errors:
 Function Name: 3
@@ -18,5 +15,3 @@ public:
 private:
   int m_functionNotAMemberVariable(); // Function incorrectly named like a member variable
 };
-
-#endif

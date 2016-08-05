@@ -1,6 +1,3 @@
-#ifndef TESTCONSTANTNAMES
-#define TESTCONSTANTNAMES
-
 /*
 Expected Errors:
 Constant Variable Name: 3
@@ -23,5 +20,3 @@ enum TestEnum3 {
 enum TestEnum4 {
   kSnake_case_enumerator // Incorrect use of snake_case instead of CamelCase
 };
-
-#endif
