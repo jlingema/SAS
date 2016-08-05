@@ -1,0 +1,10 @@
+CodingConventions/FCCSW/TestMemberVariables.h:12:3: warning: [sas.CodingConventions.FCCSW.DataMember] Data member variable names must begin with 'm_' followed by a lowerCamelCase name
+  float omittingPrefix; // "m_" incorrectly omitted
+  ^
+CodingConventions/FCCSW/TestMemberVariables.h:15:3: warning: [sas.CodingConventions.FCCSW.DataMember] Data member variable names must begin with 'm_' followed by a lowerCamelCase name
+  char m_UpperCamelCaseMemberVariable; // Incorrect uppercase letter after "m_"
+  ^
+CodingConventions/FCCSW/TestMemberVariables.h:16:3: warning: [sas.CodingConventions.FCCSW.DataMember] Data member variable names must begin with 'm_' followed by a lowerCamelCase name
+  double m_snake_case_member_variable; // Incorrect snake_case instead of camelCase
+  ^
+3 warnings generated.

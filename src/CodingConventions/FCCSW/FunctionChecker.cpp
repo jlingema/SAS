@@ -1,6 +1,6 @@
 // Author: David Ho (2016)
 
-#include "DataMemberChecker.h"
+#include "FunctionChecker.h"
 
 #include <clang/StaticAnalyzer/Core/BugReporter/BugReporter.h>
 #include <clang/StaticAnalyzer/Core/BugReporter/PathDiagnostic.h>
@@ -11,17 +11,18 @@
 namespace sas {
 namespace CodingConventions {
 namespace FCCSW {
-void DataMemberChecker::checkASTDecl(const clang::FieldDecl* D,
+void FunctionChecker::checkASTDecl(const clang::FunctionDecl* D,
                                 clang::ento::AnalysisManager& Mgr,
                                 clang::ento::BugReporter& BR) const {
-  const char *reportDescription = "[sas.CodingConventions.FCCSW.DataMember] Data member variable names must begin with 'm_' followed by a lowerCamelCase name.";
-  std::regex correctRegex("^m_[a-z][a-zA-Z0-9]+");
+  const char *reportDescription = "[sas.CodingConventions.FCCSW.Function] Function names must be in lowerCamelCase.";
+  std::regex correctRegex("^[a-z][[:alnum:]]+");
   auto nameString = D->getNameAsString();
-  auto parent = D->getParent();
-
-  if (parent->isStruct()) {
-      return;
-      // Does not apply to public members of structs
+  auto declName = D->getDeclName();
+  auto nameKind = declName.getNameKind();
+  if (nameKind == clang::DeclarationName::NameKind::CXXConstructorName ||
+      nameKind == clang::DeclarationName::NameKind::CXXDestructorName) {
+    return;
+      // Exception to function naming conventions for constructors/destructors
   }
 
   if (!std::regex_match(nameString, correctRegex)) {

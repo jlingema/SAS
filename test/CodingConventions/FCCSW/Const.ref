@@ -1,0 +1,19 @@
+CodingConventions/FCCSW/TestConstantNames.h:11:1: warning: [sas.CodingConventions.FCCSW.Const] Constant variable names must begin with 'k' followed by an UpperCamelCase name
+const double OmittedPrefix = 0.0; // Prefix "k" omitted
+^
+CodingConventions/FCCSW/TestConstantNames.h:12:1: warning: [sas.CodingConventions.FCCSW.Const] Constant variable names must begin with 'k' followed by an UpperCamelCase name
+const char klowerCamelCase = 'a'; // Second letter should be uppercase
+^
+CodingConventions/FCCSW/TestConstantNames.h:13:1: warning: [sas.CodingConventions.FCCSW.Const] Constant variable names must begin with 'k' followed by an UpperCamelCase name
+const float kSnake_case = 0.0; // Incorrect use of snake_case instead of CamelCase
+^
+CodingConventions/FCCSW/TestConstantNames.h:17:1: warning: [sas.CodingConventions.FCCSW.Enumerator] Enumerator variable names must begin with 'k' followed by an UpperCamelCase name
+enum TestEnum2 {
+^
+CodingConventions/FCCSW/TestConstantNames.h:20:1: warning: [sas.CodingConventions.FCCSW.Enumerator] Enumerator variable names must begin with 'k' followed by an UpperCamelCase name
+enum TestEnum3 {
+^
+CodingConventions/FCCSW/TestConstantNames.h:23:1: warning: [sas.CodingConventions.FCCSW.Enumerator] Enumerator variable names must begin with 'k' followed by an UpperCamelCase name
+enum TestEnum4 {
+^
+6 warnings generated.

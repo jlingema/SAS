@@ -122,9 +122,12 @@ add_clang_plugin(libSas
    src/CodingConventions/ROOT/RN12Checker.cpp
    src/CodingConventions/ROOT/RN13Checker.cpp
    src/CodingConventions/ROOT/PtrCastWinChecker.cpp
-   src/CodingConventions/FCCSW/LocalVariableLowercaseChecker.cpp
-   src/CodingConventions/FCCSW/ClassNameUppercaseChecker.cpp
    src/CodingConventions/FCCSW/DataMemberChecker.cpp
+   src/CodingConventions/FCCSW/ConstChecker.cpp
+   src/CodingConventions/FCCSW/EnumeratorChecker.cpp
+   src/CodingConventions/FCCSW/TypeChecker.cpp
+   src/CodingConventions/FCCSW/NamespaceChecker.cpp
+   src/CodingConventions/FCCSW/FunctionChecker.cpp
    src/ThreadSafety/ConstCastChecker.cpp
    src/ThreadSafety/ConstCastAwayChecker.cpp
    src/ThreadSafety/GlobalStaticChecker.cpp

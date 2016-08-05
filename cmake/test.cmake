@@ -72,3 +72,9 @@ add_sas_test_generic("bwlist.locate_yaml_by_env" "match.cpp" "BWList/Misc/" "SA_
 add_sas_test("commentDisabler" "comment_checker_disabler.cpp")
 add_sas_test_generic("clang-modernize" "loop_convert.cpp" "" "SA_MODERNIZE=-risk=safe -loop-convert")
 add_sas_test("sas.Example.Varname"  "Example/varname.cpp")
+
+add_sas_test("sas.CodingConventions.FCCSW.Const" "CodingConventions/FCCSW/Const.h")
+add_sas_test("sas.CodingConventions.FCCSW.DataMember" "CodingConventions/FCCSW/DataMember.h")
+add_sas_test("sas.CodingConventions.FCCSW.Function" "CodingConventions/FCCSW/Function.h")
+add_sas_test("sas.CodingConventions.FCCSW.Namespace" "CodingConventions/FCCSW/Namespace.h")
+add_sas_test("sas.CodingConventions.FCCSW.Type" "CodingConventions/FCCSW/Type.h")
