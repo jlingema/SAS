@@ -1,0 +1,6 @@
+#include "FunctionChecker.h"
+#include "DataMemberChecker.h"
+#include "NamespaceChecker.h"
+#include "ConstChecker.h"
+#include "EnumeratorChecker.h"
+#include "TypeChecker.h"

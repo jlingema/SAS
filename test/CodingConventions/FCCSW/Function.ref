@@ -1,0 +1,10 @@
+CodingConventions/FCCSW/TestFunctionNames.h:10:1: warning: [sas.CodingConventions.FCCSW.Function] Function names must be in lowerCamelCase
+double UpperCamelCaseFunction(int arg1, float arg2); // First letter incorrectly capitalised
+^
+CodingConventions/FCCSW/TestFunctionNames.h:11:1: warning: [sas.CodingConventions.FCCSW.Function] Function names must be in lowerCamelCase
+char *snake_case_function(char arg1); // incorrect use of snake_case instead of camelCase
+^
+CodingConventions/FCCSW/TestFunctionNames.h:19:3: warning: [sas.CodingConventions.FCCSW.Function] Function names must be in lowerCamelCase
+  int m_functionNotAMemberVariable(); // Function incorrectly named like a member variable
+  ^
+3 warnings generated.

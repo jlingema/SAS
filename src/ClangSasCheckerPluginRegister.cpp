@@ -26,6 +26,9 @@
 // ROOT CodingConventions
 #include "CodingConventions/ROOT/Rules.h"
 
+// FCCSW CodingConventions
+#include "CodingConventions/FCCSW/Rules.h"
+
 // Performance
 #include "Performance/Checkers.h"
 
@@ -78,7 +81,16 @@ extern "C" void clang_registerCheckers(clang::ento::CheckerRegistry& registry)
    AddToRegistry<RN13Checker>(registry);
    AddToRegistry<PtrCastWinChecker>(registry);
    }
-
+   // FCCSW Coding Conventions
+   {
+   using namespace sas::CodingConventions::FCCSW;
+   AddToRegistry<DataMemberChecker>(registry);
+   AddToRegistry<ConstChecker>(registry);
+   AddToRegistry<EnumeratorChecker>(registry);
+   AddToRegistry<TypeChecker>(registry);
+   AddToRegistry<NamespaceChecker>(registry);
+   AddToRegistry<FunctionChecker>(registry);
+   }
    // Performance
    {
    using namespace sas::Performance;
