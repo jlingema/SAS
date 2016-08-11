@@ -8,8 +8,8 @@
 
 // Checks for 'using namespace' or 'using std::' in header files
 
-#ifndef Utilities_StaticAnalyzers_UsingNamespace_h
-#define Utilities_StaticAnalyzers_UsingNamespace_h
+#ifndef Utilities_StaticAnalyzers_NoUsingNamespaceInHeaders_h
+#define Utilities_StaticAnalyzers_NoUsingNamespaceInHeaders_h
 
 #include "SasChecker.h"
 

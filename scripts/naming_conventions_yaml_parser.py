@@ -38,39 +38,47 @@ class ConventionReader(object):
         with open("/afs/cern.ch/user/d/daho/yaml/templates/DefaultIdentifier.template", "r") as fobj:
             self.default_template = fobj.read()
 
-    def check(self, name, regex):
+    def check(self, convention_rules):
+        # Are the required fields present?
+        if not ("name" in convention_rules and "regex" in convention_rules and "description" in convention_rules):
+            print("Required field 'name', 'regex' and/or 'description' not found; checker not written")
+            return False
+        name = convention_rules["name"]
+        regex = convention_rules["regex"]
         # is the regex valid?
         try:
             re.compile(regex)
-        except:
-            print("Invalid regex for '{name}'; checker not written".format(name=name))
+        except re.error as err:
+            print(err)
+            print("Regex error in {name}: {error}".format(name=name, error=err))
             return False
         # is there a known Clang type associated with the name?
-        try:
-            self.known_clang_types[name]
-        except KeyError:
-            print("Unable to find Clang type for '{name}'; checker not written".format(name=name))
-            return False
+        if name not in self.known_clang_types:
+            if "clangType" in convention_rules:
+                self.known_clang_types[name] = convention_rules["clangType"]
+            else:
+                print("Unable to find Clang type for '{name}'; checker not written".format(name=name))
+                return False
         return True
 
     def read(self):
         with open(self.yamlfile, 'r') as yamlfile:
             content = yaml.load(yamlfile)
-        if "project" in content.keys():
+        if "project" in content:
             self.project_name = content["project"]["name"]
             self.project_author = content["project"]["author"]
-        if "conventions" in content.keys():
+        if "conventions" in content:
             conventions = content["conventions"]
             for convention_name in conventions.keys():
-                name = conventions[convention_name]["name"]
-                regex = conventions[convention_name]["regex"]
-                desc = conventions[convention_name]["description"]
-                if "clangType" in conventions[convention_name].keys():
-                    self.known_clang_types[name] = conventions[convention_name]["clangType"]
-                if self.check(name, regex):
+                convention_rules = conventions[convention_name]
+                if self.check(convention_rules):
+                    name = convention_rules["name"]
+                    regex = convention_rules["regex"]
+                    desc = convention_rules["description"]
                     clang_type = self.known_clang_types[name]
                     self.rules[name] = [regex, clang_type, desc]
-                else: continue
+                else:
+                    continue
                 if not name in self.identifiers.keys():
                     print("No identifier template found for '{name}'; using default template".format(name=name))
                     self.identifiers[name] = self.default_template
@@ -86,9 +94,9 @@ if __name__ == "__main__":
     reader = ConventionReader(args.file_name)
     reader.read()
 
-    with open(os.path.join(args.destination, "Rules.h"), "w") as fobj:
+    with open(os.path.join(args.destination, "CMakeLists.txt"), "w") as fobj:
         for name in reader.rules.keys():
-            fobj.write("#include \"{name}Checker.h\"\n".format(name=name))
+            fobj.write("add_checker({name}Checker.cpp)\n".format(name=name))
 
     for name, attributes in reader.rules.iteritems():
         with open("/afs/cern.ch/user/d/daho/yaml/templates/CheckerBase.cpp.template", "r") as fobj:
