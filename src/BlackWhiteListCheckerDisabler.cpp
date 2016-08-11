@@ -55,7 +55,6 @@ void BlackWhiteListCheckerDisabler::WalkDeclContext(const clang::DeclContext *DC
 bool BlackWhiteListCheckerDisabler::PathWildCardMatch(jsonxx::Array &pathWildCardList,
                                                       const std::string &matchString) const {
    if(matchString.empty()) return true;
-   std::cout<<"PATHSIZE "<<pathWildCardList.size()<<std::endl;
    if(pathWildCardList.size() != 0)
    {
       for(std::size_t listIndex = 0;

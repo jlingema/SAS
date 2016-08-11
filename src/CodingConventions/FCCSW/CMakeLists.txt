@@ -1,0 +1,6 @@
+add_checker(FunctionChecker.cpp)
+add_checker(DataMemberChecker.cpp)
+add_checker(NamespaceChecker.cpp)
+add_checker(ConstChecker.cpp)
+add_checker(EnumeratorChecker.cpp)
+add_checker(TypeChecker.cpp)

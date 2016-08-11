@@ -1,0 +1,1 @@
+add_checker(VarnameChecker.cpp)

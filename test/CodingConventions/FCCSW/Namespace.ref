@@ -1,0 +1,13 @@
+CodingConventions/FCCSW/Namespace.cpp:10:1: warning: [sas.CodingConventions.FCCSW.Namespace] Namespace names may only contain lowercase letters
+namespace UpperCamelCaseNamespace { //Incorrect use of UpperCamelCase instead of lowercase
+^
+CodingConventions/FCCSW/Namespace.cpp:10:1: note: [sas.CodingConventions.FCCSW.Namespace] Namespace names may only contain lowercase letters
+CodingConventions/FCCSW/Namespace.cpp:14:1: warning: [sas.CodingConventions.FCCSW.Namespace] Namespace names may only contain lowercase letters
+namespace lowerCamelCaseNamespace { //Incorrect use of lowerCamelCase instead of lowercase
+^
+CodingConventions/FCCSW/Namespace.cpp:14:1: note: [sas.CodingConventions.FCCSW.Namespace] Namespace names may only contain lowercase letters
+CodingConventions/FCCSW/Namespace.cpp:18:1: warning: [sas.CodingConventions.FCCSW.Namespace] Namespace names may only contain lowercase letters
+namespace snake_case_namespace { //incorrect use of snake_case instead of lowercase
+^
+CodingConventions/FCCSW/Namespace.cpp:18:1: note: [sas.CodingConventions.FCCSW.Namespace] Namespace names may only contain lowercase letters
+3 warnings generated.

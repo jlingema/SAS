@@ -26,8 +26,8 @@ import sys
 import os
 import shutil
 
-_ClangFormatExeName="@@@clang-format"
-_ClangModernizeExeName="@@@clang-modernize"
+_ClangFormatExeName="${CLANG_FORMAT_PATH}"
+_ClangModernizeExeName="${CLANG_MODERNIZE_PATH}"
 _SourceFilesExtensions=[".cpp",".cxx",".c",
                         ".h",".hpp",".icc",".hxx"]
 _SourceFilesExtensions+=map(str.upper,_SourceFilesExtensions)

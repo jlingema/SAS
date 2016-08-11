@@ -35,20 +35,18 @@ def runTest():
       env = envStr.split('=',1)
       if len(env) == 2:
          compile_env[env[0]] = env[1]
-
    basePath = getBasePath(sas_plugin)
 
-   process = subprocess.Popen([cc, "-c", "-std=c++11", src], stderr=subprocess.PIPE, env=compile_env)
-
-   analyze_output = process.communicate()[1]
-   clean_analyze_output = cleanOutput(basePath, analyze_output)
+   proc = subprocess.Popen([cc, "-c", "-std=c++11", src], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=compile_env)
+   stdout, _ = proc.communicate()
+   clean_analyzer_output = cleanOutput(basePath, stdout)
 
    refOutput = open(refOutputName).read()
 
-   if refOutput == clean_analyze_output:
+   if refOutput.strip() == clean_analyzer_output.strip():
       return 0
    else:
-      printDiff(refOutput,clean_analyze_output)
+      printDiff(refOutput,clean_analyzer_output)
       return 1
 
 if __name__ == "__main__":

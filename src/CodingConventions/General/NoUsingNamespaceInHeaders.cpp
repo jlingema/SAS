@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "UsingNamespace.h"
+#include "NoUsingNamespaceInHeaders.h"
 
 namespace sas {
    namespace CodingConventions {
