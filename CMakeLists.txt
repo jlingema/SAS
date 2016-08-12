@@ -76,6 +76,7 @@ set(CLANG_MODERNIZE_PATH "${CLANG_EXES_LOCATION}clang-modernize")
 configure_file(templates/clang.in ${CMAKE_BINARY_DIR}/scripts/clang)
 configure_file(templates/clang++.in ${CMAKE_BINARY_DIR}/scripts/clang++)
 configure_file(templates/common/__init__.py.in ${CMAKE_BINARY_DIR}/scripts/common/__init__.py)
+configure_file(scripts/compile.in ${CMAKE_BINARY_DIR}/scripts/compile)
 
 include( CTest )
 include( cmake/test.cmake )
