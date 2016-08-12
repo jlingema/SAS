@@ -16,9 +16,9 @@ public:
 };
 
 class EnumeratorChecker : public SasChecker<EnumeratorTraits,
-                                       clang::ento::check::ASTDecl<clang::EnumDecl>> {
+                                       clang::ento::check::ASTDecl<clang::EnumConstantDecl>> {
 public:
-  void checkASTDecl(const clang::EnumDecl* D, 
+  void checkASTDecl(const clang::EnumConstantDecl* D, 
                     clang::ento::AnalysisManager& Mgr, 
                     clang::ento::BugReporter& BR) const;
 };

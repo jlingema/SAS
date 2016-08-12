@@ -1,0 +1,11 @@
+auto nameString = D->getNameAsString();
+  auto parent = D->getParent();
+
+  if (parent->isStruct()) {
+      return;
+      // Does not apply to public members of structs
+  }
+
+  if (!std::regex_match(nameString, correctRegex)) {
+    Report(D, reportDescription, BR);
+  }

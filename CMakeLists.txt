@@ -39,15 +39,15 @@ set (CMAKE_MODULE_LINKER_FLAGS "-Wl,-flat_namespace -Wl,-undefined -Wl,suppress"
 
 set (USER_LIBS pthread)
 
-option(INCLUDE_FCCSW_CHECKERS "Turn on to activate FCCSW coding convention checkers.")
-option(INCLUDE_ROOT_CHECKERS "Turn on to activate ROOT coding convention checkers.")
-option(INCLUDE_GENERAL_CHECKERS "Turn on to activate general coding convention checkers.")
+option(FCCSW_CHECKERS "Turn on to activate FCCSW coding convention checkers." OFF)
+option(ROOT_CHECKERS "Turn on to activate ROOT coding convention checkers." OFF)
+option(GENERAL_CHECKERS "Turn on to activate general coding convention checkers." ON)
 
 add_subdirectory(src)
-generate_registry_code("${checker_paths}")
 
 # Generate checker registry from template
-configure_file(scripts/ClangSasCheckerPluginRegister.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/ClangSasCheckerPluginRegister.cpp)
+generate_registry_code("${checker_paths}")
+configure_file(templates/ClangSasCheckerPluginRegister.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/ClangSasCheckerPluginRegister.cpp)
 
 # Add checkers and other plugins
 add_clang_plugin(libSas
@@ -60,10 +60,7 @@ add_clang_plugin(libSas
    src/BlackWhiteListCheckerDisabler
    )
 
-# Remove global variable
-unset(checker_paths CACHE)
-
-file(COPY scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/ FILES_MATCHING PATTERN "*.py")
+file(COPY scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 file(COPY config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 
 #modify script clang path to the real one
@@ -76,9 +73,15 @@ set(CLANG_PP_PATH "${CLANG_EXES_LOCATION}clang++")
 set(CLANG_FORMAT_PATH "${CLANG_EXES_LOCATION}clang-format")
 set(CLANG_MODERNIZE_PATH "${CLANG_EXES_LOCATION}clang-modernize")
 
-configure_file(scripts/clang.in ${CMAKE_BINARY_DIR}/scripts/clang)
-configure_file(scripts/clang++.in ${CMAKE_BINARY_DIR}/scripts/clang++)
-configure_file(scripts/common/__init__.py.in ${CMAKE_BINARY_DIR}/scripts/common/__init__.py)
+configure_file(templates/clang.in ${CMAKE_BINARY_DIR}/scripts/clang)
+configure_file(templates/clang++.in ${CMAKE_BINARY_DIR}/scripts/clang++)
+configure_file(templates/common/__init__.py.in ${CMAKE_BINARY_DIR}/scripts/common/__init__.py)
 
 include( CTest )
 include( cmake/test.cmake )
+
+# Remove persistent cached variables
+unset(checker_paths CACHE)
+unset(FCCSW_CHECKERS CACHE)
+unset(ROOT_CHECKERS CACHE)
+unset(GENERAL_CHECKERS CACHE)

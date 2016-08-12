@@ -1,0 +1,12 @@
+auto nameString = D->getNameAsString();
+  auto declName = D->getDeclName();
+  auto nameKind = declName.getNameKind();
+  if (nameKind == clang::DeclarationName::NameKind::CXXConstructorName ||
+      nameKind == clang::DeclarationName::NameKind::CXXDestructorName) {
+    return;
+      // Exception to function naming conventions for constructors/destructors
+  }
+
+  if (!std::regex_match(nameString, correctRegex)) {
+    Report(D, reportDescription, BR);
+  }
