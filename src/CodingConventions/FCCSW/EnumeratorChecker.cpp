@@ -11,19 +11,15 @@
 namespace sas {
 namespace CodingConventions {
 namespace FCCSW {
-void EnumeratorChecker::checkASTDecl(const clang::EnumDecl* D,
+void EnumeratorChecker::checkASTDecl(const clang::EnumConstantDecl* D,
                                 clang::ento::AnalysisManager& Mgr,
                                 clang::ento::BugReporter& BR) const {
   const char *reportDescription = "[sas.CodingConventions.FCCSW.Enumerator] Enumerator variable names must begin with 'k' followed by an UpperCamelCase name.";
   std::regex correctRegex("^k[A-Z][a-zA-Z0-9]+");
-  auto begin = D->enumerator_begin();
-  auto end = D->enumerator_end();
+  auto nameString = D->getNameAsString();
 
-  for (clang::EnumDecl::enumerator_iterator i = begin; i != end; i++) {
-    auto nameString = i->getNameAsString();
-    if (!std::regex_match(nameString, correctRegex)) {
-      Report(D, reportDescription, BR);
-    }
+if (!std::regex_match(nameString, correctRegex)) {
+    Report(D, reportDescription, BR);
   }
   
 }

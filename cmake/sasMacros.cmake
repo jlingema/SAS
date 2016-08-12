@@ -1,6 +1,7 @@
  include(CMakeParseArguments)
 
 macro(add_clang_plugin name)
+   # Updates a cached list of checkers to be added
    set (srcs ${ARGN})
 
    include_directories(
@@ -27,6 +28,7 @@ macro(add_clang_plugin name)
 endmacro(add_clang_plugin)
 
 macro(add_checker checker_name)
+   # Updates a cached list of checkers to be added
    list(APPEND checker_paths "${CMAKE_CURRENT_SOURCE_DIR}/${checker_name}")
    # This is a global cached variable that persists between builds and must be unset in the main CMakeLists.txt file
    set(checker_paths ${checker_paths} CACHE INTERNAL "List of active checkers.")
