@@ -26,8 +26,9 @@ import sys
 import os
 import shutil
 
-_ClangFormatExeName="@@@clang-format"
-_ClangModernizeExeName="@@@clang-modernize"
+_ClangFormatExeName="${CLANG_FORMAT_PATH}"
+_ClangModernizeExeName="${CLANG_MODERNIZE_PATH}"
+_PluginLocation="${CMAKE_BINARY_DIR}/lib/libSas.so"
 _SourceFilesExtensions=[".cpp",".cxx",".c",
                         ".h",".hpp",".icc",".hxx"]
 _SourceFilesExtensions+=map(str.upper,_SourceFilesExtensions)
@@ -44,7 +45,7 @@ def _Bold(text):
    '''
    return "\033[1m%s \033[m" %text
 
-def _WrapClangCommand(command, SA_CLANG_COMPILER):
+def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
    '''
    Wrap the compilation command and force clang to run static analysis.
    Invoke SA and compilation
@@ -54,13 +55,13 @@ def _WrapClangCommand(command, SA_CLANG_COMPILER):
    BASE_XCLANG_ARGS = ["-Xclang", "-analyze", "-Xclang", "-analyzer-output=text"]
 
    env = os.environ
-   sa_checkersString = env[SA_CHECKERS] if env.has_key(SA_CHECKERS) else ""
+   sa_checkersString = env[SA_CHECKERS] if env.has_key(SA_CHECKERS) else checkers
    sa_checkers = filter(lambda name: name!='', sa_checkersString.split(":"))
    compilerArguments = command[1:]
    sa_checker_output = ""
 
    if len(sa_checkers)>0 and "-c" in compilerArguments and not "-shared" in compilerArguments:
-      sa_plugin = env[SA_PLUGIN] if env.has_key(SA_PLUGIN) else ""
+      sa_plugin = env[SA_PLUGIN] if env.has_key(SA_PLUGIN) else _PluginLocation
       # Accumulate checkers names
       checkers_args=[]
       for checkerName in sa_checkers:
@@ -177,21 +178,25 @@ def _IsSourceFile(filename):
     fileExtension = os.path.splitext(filename)[1]
     return fileExtension in _SourceFilesExtensions
 
-def Analyze(command, sa_clang_compiler):
+def Analyze(command, sa_clang_compiler, sa_formatting=False, sa_modernize="", sa_checkers=""):
     '''
     Perform static analysis and check of formatting rules if requested
     '''
     returnVal=0
     sources = filter(_IsSourceFile, command)
-    if os.environ.has_key("SA_FORMATTING"):
+    if os.environ.has_key("SA_FORMATTING") or sa_formatting:
        res = map(CheckFormattingRules, sources)
        returnVal = len(res)
+    options = ""
     if os.environ.has_key("SA_MODERNIZE"):
        options = os.environ['SA_MODERNIZE']
+    if sa_modernize != "":
+       options = sa_modernize
+    if options != "":
        res = map(lambda source: ClangModernize(options,source), sources)
        returnVal = len(res)
 
-    compilation_ret, _ = _WrapClangCommand(command, sa_clang_compiler)
+    compilation_ret, _ = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
     returnVal += compilation_ret
     return returnVal
 
