@@ -28,6 +28,7 @@ import shutil
 
 _ClangFormatExeName="${CLANG_FORMAT_PATH}"
 _ClangModernizeExeName="${CLANG_MODERNIZE_PATH}"
+_PluginLocation="${CMAKE_BINARY_DIR}/lib/libSas.so"
 _SourceFilesExtensions=[".cpp",".cxx",".c",
                         ".h",".hpp",".icc",".hxx"]
 _SourceFilesExtensions+=map(str.upper,_SourceFilesExtensions)
@@ -60,7 +61,7 @@ def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
    sa_checker_output = ""
 
    if len(sa_checkers)>0 and "-c" in compilerArguments and not "-shared" in compilerArguments:
-      sa_plugin = env[SA_PLUGIN] if env.has_key(SA_PLUGIN) else ""
+      sa_plugin = env[SA_PLUGIN] if env.has_key(SA_PLUGIN) else _PluginLocation
       # Accumulate checkers names
       checkers_args=[]
       for checkerName in sa_checkers:
