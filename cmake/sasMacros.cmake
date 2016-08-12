@@ -1,3 +1,5 @@
+ include(CMakeParseArguments)
+
 macro(add_clang_plugin name)
    set (srcs ${ARGN})
 
@@ -58,3 +60,38 @@ macro(generate_registry_code checker_paths)
       set(ADD_TO_REGISTRY "${ADD_TO_REGISTRY}  {\n${code_block}  }\n")
    endforeach()
 endmacro(generate_registry_code)
+
+
+macro(add_sas_test_new)
+   cmake_parse_arguments(ARG  "IS_C"
+                              "FILE;CHECKERS;MODERNIZE;PASSREGEX;FAILREGEX;LABELS"
+                              "" ${ARGN})
+   find_program(env_cmd xenv HINTS ${binary_paths})
+
+   if (NOT ARG_FILE)
+      message( SEND_ERROR "Cannot add test, specify file!" )
+   endif (NOT ARG_FILE)
+
+   if(NOT ARG_CHECKERS AND NOT ARG_MODERNIZE)
+      message( SEND_ERROR "Specify modernize or checkers configuration!" )
+   endif(NOT ARG_CHECKERS AND NOT ARG_MODERNIZE)
+
+   set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/compile")
+
+   set(FULL_FILENAME ${ARG_FILE})
+   # set(FULL_FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_FILE})
+   string(REPLACE "/" "." TEST_NAME ${FULL_FILENAME})
+
+   # prepare environment variable for checkers:
+   foreach(CHECKER ${ARG_CHECKERS})
+      set(CHECKERS ${CHECKERS} "${CHECKER}:")
+   endforeach()
+
+   add_test(NAME "${TEST_NAME}"
+     COMMAND ${SAS_CMD} --checkers=${CHECKERS} --modernize=${ARG_MODERNIZE} --cargs="${FULL_FILENAME} -c -std=c++11"
+     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+
+   if(ARG_PASSREGEX)
+    set_property(TEST ${TEST_NAME} PROPERTY PASS_REGULAR_EXPRESSION ${ARG_PASSREGEX})
+   endif()
+ endmacro(add_sas_test_new)
