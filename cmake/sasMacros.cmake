@@ -64,9 +64,9 @@ macro(generate_registry_code checker_paths)
 endmacro(generate_registry_code)
 
 
-macro(add_sas_test_new)
+macro(add_sas_test)
    cmake_parse_arguments(ARG  "IS_C"
-                              "FILE;CHECKERS;MODERNIZE;PASSREGEX;FAILREGEX;LABELS"
+                              "FILE;CHECKERS;MODERNIZE;SA_CONFIGURATION_FILE;WORKING_DIR;PASSREGEX;FAILREGEX;LABELS"
                               "" ${ARGN})
    find_program(env_cmd xenv HINTS ${binary_paths})
 
@@ -79,21 +79,29 @@ macro(add_sas_test_new)
    endif(NOT ARG_CHECKERS AND NOT ARG_MODERNIZE)
 
    set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/compile")
+   set(FULL_FILENAME "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_FILE}")
+   if(ARG_SA_CONFIGURATION_FILE)
+      set(CONFIGURATION_FILENAME "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_SA_CONFIGURATION_FILE}")
+   endif()
+   if(ARG_WORKING_DIR)
+      set(WORKING_DIR "${CMAKE_SOURCE_DIR}/${ARG_WORKING_DIR}")
+   else()
+      set(WORKING_DIR "${CMAKE_CURRENT_LIST_DIR}")
+   endif()
 
-   set(FULL_FILENAME ${ARG_FILE})
-   # set(FULL_FILENAME ${CMAKE_CURRENT_SOURCE_DIR}/${ARG_FILE})
-   string(REPLACE "/" "." TEST_NAME ${FULL_FILENAME})
+   string(REPLACE "${CMAKE_SOURCE_DIR}/test/" "" TEST_NAME ${FULL_FILENAME})
+   string(REPLACE "/" "." TEST_NAME ${TEST_NAME})
+   string(REGEX REPLACE "\\.[^.]+$" "" TEST_NAME ${TEST_NAME})
 
-   # prepare environment variable for checkers:
-   foreach(CHECKER ${ARG_CHECKERS})
-      set(CHECKERS ${CHECKERS} "${CHECKER}:")
-   endforeach()
 
    add_test(NAME "${TEST_NAME}"
-     COMMAND ${SAS_CMD} --checkers=${CHECKERS} --modernize=${ARG_MODERNIZE} --cargs="${FULL_FILENAME} -c -std=c++11"
-     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}")
+      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} --modernize=${ARG_MODERNIZE} --sa_configuration=${CONFIGURATION_FILENAME} --cargs="${ARG_FILE} -c -std=c++11"
+      WORKING_DIRECTORY "${WORKING_DIR}")
 
    if(ARG_PASSREGEX)
-    set_property(TEST ${TEST_NAME} PROPERTY PASS_REGULAR_EXPRESSION ${ARG_PASSREGEX})
+      set_property(TEST ${TEST_NAME} PROPERTY PASS_REGULAR_EXPRESSION ${ARG_PASSREGEX})
    endif()
- endmacro(add_sas_test_new)
+   if(ARG_FAILREGEX)
+      set_property(TEST ${TEST_NAME} PROPERTY FAIL_REGULAR_EXPRESSION ${ARG_FAILREGEX})
+   endif()
+ endmacro(add_sas_test)

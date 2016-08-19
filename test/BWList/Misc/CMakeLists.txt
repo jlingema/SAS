@@ -1,0 +1,1 @@
+add_sas_test(FILE "match.cpp" CHECKERS "sas.CodingConventions.ROOT" SA_CONFIGURATION_FILE "configuration.json" PASSREGEX "^\n$")

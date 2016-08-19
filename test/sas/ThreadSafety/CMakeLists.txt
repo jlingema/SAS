@@ -1,0 +1,5 @@
+add_sas_test(FILE "const_cast_away.cpp" CHECKERS "sas.ThreadSafety.ConstCastAway" PASSREGEX ":14:41:.*:15:36:.*2 warnings")
+add_sas_test(FILE "const_cast.cpp" CHECKERS "sas.ThreadSafety.ConstCast" PASSREGEX ":14:36:.*:15:36:.*2 warnings")
+add_sas_test(FILE "global_static.cpp" CHECKERS "sas.ThreadSafety.GlobalStatic" PASSREGEX ":13:1:.*:14:1:.*2 warnings")
+add_sas_test(FILE "static_local.cpp" CHECKERS "sas.ThreadSafety.StaticLocal" PASSREGEX ":10:9:.*:11:9:.*:12:2:.*:20:9:.*4 warnings")
+add_sas_test(FILE "mutable_member.cpp" CHECKERS "sas.ThreadSafety.MutableMember" PASSREGEX ":3:4:.*1 warning")

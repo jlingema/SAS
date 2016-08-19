@@ -154,7 +154,7 @@ def _RunClangModernize(command, filename, options):
     resultFile = open(tempfile, 'r')
     result = resultFile.read()
     resultFile.close()
-    os.remove(tempname)
+    os.remove(tempfile)
     return result
 
 def CheckFormattingRules(filename):
