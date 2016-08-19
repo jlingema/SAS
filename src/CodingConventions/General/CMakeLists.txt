@@ -1,0 +1,2 @@
+add_checker(StdPrintoutsChecker.cpp)
+add_checker(NoUsingNamespaceInHeaders.cpp)

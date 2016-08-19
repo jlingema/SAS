@@ -1,0 +1,8 @@
+add_sas_test(FILE "RN3.cpp" CHECKERS "sas.CodingConventions.ROOT.RN3" PASSREGEX ":2:1:.*1 warning")
+add_sas_test(FILE "RN4.cpp" CHECKERS "sas.CodingConventions.ROOT.RN4" PASSREGEX ":3:1:.*:4:1:.*2 warnings")
+add_sas_test(FILE "RN6.cpp" CHECKERS "sas.CodingConventions.ROOT.RN6" PASSREGEX ":3:1:.*1 warning")
+add_sas_test(FILE "RN9.cpp" CHECKERS "sas.CodingConventions.ROOT.RN9" PASSREGEX ":2:1:.*1 warning")
+add_sas_test(FILE "RN10.cpp" CHECKERS "sas.CodingConventions.ROOT.RN10" PASSREGEX ":2:1:.*1 warning")
+add_sas_test(FILE "RN11.cpp" CHECKERS "sas.CodingConventions.ROOT.RN11" PASSREGEX ":4:4:.*1 warning")
+add_sas_test(FILE "RN12.cpp" CHECKERS "sas.CodingConventions.ROOT.RN12" PASSREGEX ":4:4:.*1 warning")
+add_sas_test(FILE "ptr_cast_win.cpp" CHECKERS "sas.CodingConventions.ROOT.PtrCastWin" PASSREGEX ":5:13:.*1 warning")

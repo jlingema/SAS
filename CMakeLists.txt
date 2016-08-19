@@ -1,5 +1,6 @@
-# Author: <CMS>
+# Authors: <CMS>
 #         Filip Bartek (2013)
+#         David Ho (2016)
 
 # Optional:
 # LLVM_DEV_DIR
@@ -7,51 +8,23 @@
 # Usage:
 # cmake [-D LLVM_DEV_DIR=$LLVM_DEV_DIR] $SAS_DIR
 
-# To register a new checker class in the SAS library, add an argument
-# "src/MyChecker.cpp" (replacing "MyChecker" with the actual name of the
-# checker file) to the `add_clang_plugin` call further in this file.
-
-
 cmake_minimum_required (VERSION 2.8)
 project (sas CXX)
+
+set( sas_VERSION_MAJOR 0 )
+set( sas_VERSION_MINOR 1 )
+set( sas_VERSION_PATCH 0 )
+set( sas_VERSION "${sas_VERSION_MAJOR}.${sas_VERSION_MINOR}" )
 
 # Check if this is an out-of-source build
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
    message(FATAL_ERROR "In source build is not supported. Please build in a different directory.")
 endif()
 
-# Initialize input variables
-set(LLVM_INCLUDE_DIR "" CACHE FILEPATH "LLVM include directory")
-set(LLVM_LIB_DIR "" CACHE FILEPATH "LLVM lib directory")
-set(CLANG_INCLUDE_DIRS "" CACHE FILEPATH "Clang include directory")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+find_package(LLVM)
+include(sasMacros)
 
-if (LLVM_DEV_DIR)
-   message(STATUS "Manually set LLVM_DEV_DIR: ${LLVM_DEV_DIR}")
-   set(LLVM_INLCUDE_DIR "${LLVM_DEV_DIR}/include")
-   set(LLVM_LIB_DIR "${LLVM_DEV_DIR}/lib")
-   set(CLANG_INCLUDE_DIRS "${LLVM_DEV_DIR}/include")
-else()
-   INCLUDE(cmake/FindLLVM.cmake)
-   INCLUDE(cmake/FindClang.cmake)
-
-   # Require LLVM_INCLUDE_DIR
-   if (LLVM_INCLUDE_DIR)
-      set(LLVM_INCLUDE_DIR ${LLVM_INCLUDE_DIR})
-   else()
-      message(FATAL_ERROR "Could not find LLVM headers. Install LLVM headers please")
-   endif()
-
-   # Require LLVM_LIB_DIR
-   if(LLVM_LIB_DIR)
-   else()
-      message(FATAL_ERROR "Could not find LLVM lib. Install LLVM lib please")
-   endif()
-
-   # Require CLANG_FOUND
-   if(NOT CLANG_FOUND)
-      message(FATAL_ERROR "Could not find Clang headers. Install Clang please")
-   endif()
-endif()
 # /usr/lib/llvm-3.5/
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
 set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
@@ -69,71 +42,35 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fno-common -Woverloaded-vir
 
 set (CMAKE_MODULE_LINKER_FLAGS "-Wl,-flat_namespace -Wl,-undefined -Wl,suppress")
 
-macro(add_clang_plugin name)
-   set (srcs ${ARGN})
+set (USER_LIBS pthread)
 
-   include_directories(
-      "${LLVM_INLCUDE_DIR}/"
-      "${CLANG_INCLUDE_DIRS}"
-      "${CMAKE_CURRENT_SOURCE_DIR}/src")
-   link_directories( "${LLVM_LIB_DIR}/" )
+option(FCCSW_CHECKERS "Turn on to activate FCCSW coding convention checkers." OFF)
+option(ROOT_CHECKERS "Turn on to activate ROOT coding convention checkers." OFF)
+option(GENERAL_CHECKERS "Turn on to activate general coding convention checkers." ON)
 
-   add_library( ${name} SHARED ${srcs} )
+add_subdirectory(src)
 
-   if (SYMBOL_FILE)
-      set_target_properties( ${name} PROPERTIES LINK_FlAGS
-         "-exported_symbols_list ${SYMBOL_FILE}")
-   endif()
+include(CTest)
+add_subdirectory(test)
 
-   foreach (user_lib ${USER_LIBS})
-      target_link_libraries( ${name} ${user_lib} )
-   endforeach()
+include(cmake/sasCreateConfig.cmake)
 
-   install(TARGETS ${name} DESTINATION lib)
+# Generate checker registry from template
+generate_registry_code("${checker_paths}")
+configure_file(templates/ClangSasCheckerPluginRegister.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/ClangSasCheckerPluginRegister.cpp)
 
-   set_target_properties( ${name} PROPERTIES
-      LINKER_LANGUAGE CXX
-      PREFIX "")
-endmacro(add_clang_plugin)
-
-set (USER_LIBS
-   pthread
-)
-
-# Add new checkers to the plugin by adding their source files as arguments to
-# the following call.
-# The first argument is the plugin name.
+# Add checkers and other plugins
 add_clang_plugin(libSas
+   ${checker_paths}
+   src/ClangSasCheckerPluginRegister.cpp
    src/SasException.cpp
-#    src/ClassDumper.cpp
-   src/CatchAll.cpp
+#   src/CatchAll.cpp
    src/CommentCheckerDisabler.cpp
    src/jsonxx.cc
-   src/BlackWhiteListCheckerDisabler.cpp
-   # New Structure
-   src/CodingConventions/General/UsingNamespace.cpp
-   src/CodingConventions/General/StdPrintoutsChecker.cpp
-   src/CodingConventions/ROOT/RN3Checker.cpp
-   src/CodingConventions/ROOT/RN4Checker.cpp
-   src/CodingConventions/ROOT/RN6Checker.cpp
-   src/CodingConventions/ROOT/RN9Checker.cpp
-   src/CodingConventions/ROOT/RN10Checker.cpp
-   src/CodingConventions/ROOT/RN11Checker.cpp
-   src/CodingConventions/ROOT/RN12Checker.cpp
-   src/CodingConventions/ROOT/RN13Checker.cpp
-   src/CodingConventions/ROOT/PtrCastWinChecker.cpp
-   src/ThreadSafety/ConstCastChecker.cpp
-   src/ThreadSafety/ConstCastAwayChecker.cpp
-   src/ThreadSafety/GlobalStaticChecker.cpp
-   src/ThreadSafety/StaticLocalChecker.cpp
-   src/ThreadSafety/MutableMemberChecker.cpp
-   src/Performance/ArgSizeChecker.cpp
-   src/Performance/FiniteMathChecker.cpp
-   src/Example/VarnameChecker.cpp
-   src/ClangSasCheckerPluginRegister.cpp
-#   src/GlobalAccInCtorChecker.cpp
-        # Add your checker here!
-)
+   src/BlackWhiteListCheckerDisabler
+   )
+
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
 
 file(COPY scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 file(COPY config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
@@ -142,10 +79,23 @@ file(COPY config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 if (LLVM_BIN_DIR)
     set(CLANG_EXES_LOCATION ${LLVM_BIN_DIR}/)
 endif()
-exec_program("sed" ARGS "-i" "-e" "\"s|[@][@][@]clang|${CLANG_EXES_LOCATION}clang|g\"" "${CMAKE_BINARY_DIR}/scripts/clang")
-exec_program("sed" ARGS "-i" "-e" "\"s|[@][@][@]clang++|${CLANG_EXES_LOCATION}clang++|g\"" "${CMAKE_BINARY_DIR}/scripts/clang++")
-exec_program("sed" ARGS "-i" "-e" "\"s|[@][@][@]clang-format|${CLANG_EXES_LOCATION}clang-format|g\"" "${CMAKE_BINARY_DIR}/scripts/common/__init__.py")
-exec_program("sed" ARGS "-i" "-e" "\"s|[@][@][@]clang-modernize|${CLANG_EXES_LOCATION}clang-modernize|g\"" "${CMAKE_BINARY_DIR}/scripts/common/__init__.py")
 
-include( CTest )
-include( cmake/test.cmake )
+set(CLANG_PATH "${CLANG_EXES_LOCATION}clang")
+set(CLANG_PP_PATH "${CLANG_EXES_LOCATION}clang++")
+set(CLANG_FORMAT_PATH "${CLANG_EXES_LOCATION}clang-format")
+set(CLANG_MODERNIZE_PATH "${CLANG_EXES_LOCATION}clang-modernize")
+
+configure_file(templates/clang.in ${CMAKE_BINARY_DIR}/scripts/clang)
+configure_file(templates/clang++.in ${CMAKE_BINARY_DIR}/scripts/clang++)
+configure_file(templates/common/__init__.py.in ${CMAKE_BINARY_DIR}/scripts/common/__init__.py)
+configure_file(templates/compile.in ${CMAKE_BINARY_DIR}/scripts/compile)
+
+install(TARGETS libSas DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX})
+
+# Remove persistent cached variables
+unset(checker_paths CACHE)
+unset(FCCSW_CHECKERS CACHE)
+unset(ROOT_CHECKERS CACHE)
+unset(GENERAL_CHECKERS CACHE)

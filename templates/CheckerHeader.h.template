@@ -1,0 +1,29 @@
+// Author: {author} ({year})
+
+#ifndef SAS_CHECKERS_{name_caps}_H
+#define SAS_CHECKERS_{name_caps}_H
+
+#include "SasChecker.h"
+
+namespace sas {{
+namespace CodingConventions {{
+namespace {project} {{
+class {name}Traits : public CommonCheckerTraits {{
+public:
+  static constexpr const char* BugName = "{name}";
+  static constexpr const char* Name="sas.CodingConventions.{project}.{name}";
+  static constexpr const char* Description="{description}";
+}};
+
+class {name}Checker : public SasChecker<{name}Traits,
+                                       clang::ento::check::ASTDecl<clang::{clang_type}>> {{
+public:
+  void checkASTDecl(const clang::{clang_type}* D, 
+                    clang::ento::AnalysisManager& Mgr, 
+                    clang::ento::BugReporter& BR) const;
+}};
+}}
+}}
+}} // end namespace sas
+
+#endif

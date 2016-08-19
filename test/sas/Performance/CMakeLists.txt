@@ -1,0 +1,2 @@
+add_sas_test(FILE "arg_size.cpp" CHECKERS "sas.Performance.ArgSizeChecker" PASSREGEX ":11:4:.*1 warning")
+add_sas_test(FILE "finite_math.cpp" CHECKERS "sas.Performance.FiniteMathChecker" PASSREGEX ":14:7:.*1 warning")

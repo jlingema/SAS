@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import os
+import common
+import difflib
+
+SA_CLANG_CPP = "${CLANG_PP_PATH}"  # note: this is system specific and set in cmake
+SA_CLANG = "${CLANG_PATH}"  # note: this is system specific and set in cmake
+
+if __name__ == "__main__":
+    argparser = argparse.ArgumentParser("wrapper around clang and clang++ for easier cmake integration", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("--check_format", action="store_true", help="flag whether to check the format with clang-format")
+    argparser.add_argument("--modernize", type=str, default="", help="clang modernize arguments")
+    argparser.add_argument("--checkers", type=str, default="", help="List of checkers, separated by ':'")
+    argparser.add_argument("--sa_configuration", type=str, default="", help="SA_CONFIGURATION file")
+    args, compiler_args = argparser.parse_known_args()
+    command = [SA_CLANG_CPP] + compiler_args
+    print(compiler_args)
+
+    # if args.sa_configuration:
+    #     os.environ["SA_CONFIGURATION"] = args.sa_configuration
+
+    retCode = common.Analyze(command, SA_CLANG_CPP,
+                             # sa_formatting=args.check_format,
+                             # sa_modernize=args.modernize,
+                             sa_checkers=args.checkers)
+    sys.exit(retCode)
