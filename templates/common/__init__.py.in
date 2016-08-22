@@ -29,7 +29,7 @@ import shutil
 _ClangFormatExeName="${CLANG_FORMAT_PATH}"
 _ClangModernizeExeName="${CLANG_MODERNIZE_PATH}"
 _PluginLocation="${CMAKE_BINARY_DIR}/lib/libSas.so"
-_SourceFilesExtensions=[".cpp",".cxx",".c",
+_SourceFilesExtensions=[".cpp",".cxx",".c", ".cc",
                         ".h",".hpp",".icc",".hxx"]
 _SourceFilesExtensions+=map(str.upper,_SourceFilesExtensions)
 
@@ -149,7 +149,7 @@ def _RunClangModernize(command, filename, options):
     shutil.copyfile(filename, tempfile)
     optionsList = options.split(' ')
 
-    process = subprocess.Popen([command] + optionsList + [tempfile], stdout = subprocess.PIPE)
+    process = subprocess.Popen([command] + [tempfile] + optionsList, stdout = subprocess.PIPE)
     process.communicate()[0]
     resultFile = open(tempfile, 'r')
     result = resultFile.read()
@@ -183,22 +183,29 @@ def Analyze(command, sa_clang_compiler, sa_formatting=False, sa_modernize="", sa
     Perform static analysis and check of formatting rules if requested
     '''
     returnVal=0
+    formatting_on = os.environ.has_key("SA_FORMATTING") or sa_formatting
+    modernize_on = os.environ.has_key("SA_MODERNIZE") or sa_modernize
     sources = filter(_IsSourceFile, command)
-    if os.environ.has_key("SA_FORMATTING") or sa_formatting:
-       res = map(CheckFormattingRules, sources)
-       returnVal = len(res)
+    includes = filter(lambda option: option[:2] == "-I", command)
     options = ""
+    if formatting_on:
+        if modernize_on:
+            options = "-format -style=file "
+        else:
+            for source in sources:
+                CheckFormattingRules(source)
     if os.environ.has_key("SA_MODERNIZE"):
-       options = os.environ['SA_MODERNIZE']
+        options += os.environ['SA_MODERNIZE']
     if sa_modernize != "":
-       options = sa_modernize
+        options += sa_modernize
     if options != "":
-       res = map(lambda source: ClangModernize(options,source), sources)
-       returnVal = len(res)
+        options = options + " -- " + " ".join(includes) + " -c -std=c++11"
+        for source in sources:
+            ClangModernize(options, source)
 
     compilation_ret, _ = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
-    returnVal += compilation_ret
-    return returnVal
+    return compilation_ret
+
 
 def CheckFormat(command, sa_clang_compiler):
     '''

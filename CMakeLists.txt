@@ -53,11 +53,11 @@ add_subdirectory(src)
 include(CTest)
 add_subdirectory(test)
 
-include(cmake/sasCreateConfig.cmake)
-
 # Generate checker registry from template
-generate_registry_code("${checker_paths}")
+generate_registry_code("${checker_relative_paths}")
 configure_file(templates/ClangSasCheckerPluginRegister.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/ClangSasCheckerPluginRegister.cpp)
+
+include(cmake/sasCreateConfig.cmake)
 
 # Add checkers and other plugins
 add_clang_plugin(libSas
@@ -69,8 +69,6 @@ add_clang_plugin(libSas
    src/jsonxx.cc
    src/BlackWhiteListCheckerDisabler
    )
-
-message(STATUS "Compiler: ${CMAKE_CXX_COMPILER}")
 
 file(COPY scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 file(COPY config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
@@ -91,11 +89,12 @@ configure_file(templates/common/__init__.py.in ${CMAKE_BINARY_DIR}/scripts/commo
 configure_file(templates/compile.in ${CMAKE_BINARY_DIR}/scripts/compile)
 
 install(TARGETS libSas DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX} PATTERN "*.pyc" EXCLUDE)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Remove persistent cached variables
 unset(checker_paths CACHE)
+unset(checker_relative_paths CACHE)
 unset(FCCSW_CHECKERS CACHE)
 unset(ROOT_CHECKERS CACHE)
 unset(GENERAL_CHECKERS CACHE)

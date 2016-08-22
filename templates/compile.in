@@ -5,6 +5,7 @@ import sys
 import os
 import common
 import difflib
+import shutil
 
 SA_CLANG_CPP = "${CLANG_PP_PATH}"  # note: this is system specific and set in cmake
 SA_CLANG = "${CLANG_PATH}"  # note: this is system specific and set in cmake
@@ -15,15 +16,20 @@ if __name__ == "__main__":
     argparser.add_argument("--modernize", type=str, default="", help="clang modernize arguments")
     argparser.add_argument("--checkers", type=str, default="", help="List of checkers, separated by ':'")
     argparser.add_argument("--sa_configuration", type=str, default="", help="SA_CONFIGURATION file")
+    argparser.add_argument("--disabled_checkers", type=str, default="", help="List of disabled checkers, separated by ';'")
     args, compiler_args = argparser.parse_known_args()
     command = [SA_CLANG_CPP] + compiler_args
-    print(compiler_args)
 
-    # if args.sa_configuration:
-    #     os.environ["SA_CONFIGURATION"] = args.sa_configuration
+    if args.disabled_checkers:
+        disabled_checkers = filter(lambda name: name!='', args.disabled_checkers.split(";"))
+        for checker_name in disabled_checkers:
+            command += ["-Xclang", "-analyzer-disable-checker", "-Xclang", checker_name]
+
+    if args.sa_configuration:
+        os.environ["SA_CONFIGURATION"] = args.sa_configuration
 
     retCode = common.Analyze(command, SA_CLANG_CPP,
-                             # sa_formatting=args.check_format,
-                             # sa_modernize=args.modernize,
+                             sa_formatting=args.check_format,
+                             sa_modernize=args.modernize,
                              sa_checkers=args.checkers)
     sys.exit(retCode)

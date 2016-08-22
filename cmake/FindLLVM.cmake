@@ -179,10 +179,6 @@ FIND_AND_ADD_CLANG_LIB(clangRewriteFrontend)
 FIND_AND_ADD_CLANG_LIB(clangASTMatchers)
 FIND_AND_ADD_CLANG_LIB(clangToolingCore)
 
-
-
-
-
 MESSAGE(STATUS "Clang libs: " ${CLANG_LIBS})
 
 if(CLANG_LIBS)
