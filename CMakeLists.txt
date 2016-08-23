@@ -72,6 +72,7 @@ add_clang_plugin(libSas
 
 file(COPY scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 file(COPY config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
+file(COPY templates/report_index.html.in DESTINATION ${CMAKE_BINARY_DIR}/html)
 
 #modify script clang path to the real one
 if (LLVM_BIN_DIR)
@@ -91,6 +92,7 @@ configure_file(templates/compile.in ${CMAKE_BINARY_DIR}/scripts/compile)
 install(TARGETS libSas DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX} PATTERN "*.pyc" EXCLUDE)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/html DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Remove persistent cached variables
 unset(checker_paths CACHE)

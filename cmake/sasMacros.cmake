@@ -66,8 +66,19 @@ macro(generate_registry_code checker_relative_paths)
    endforeach()
 endmacro(generate_registry_code)
 
+#-----------------------------------------------------------------------------------------------------------------------
+# Adds a test of sas coding conventions
+# Arguments:
+# FILE: file test is to be run on
+# CHECKERS: colon-separated list of checkers to be used
+# MODERNIZE: clang-modernize Arguments
+# SA_CONFIGURATION_FILE: SA configuration file for blacklisting/whitelisting checkers
+# WORKING_DIR: working directory in which the test is run; defaults to ${CMAKE_CURRENT_LIST_DIR}
+# PASSREGEX: regular expression present in the passing output of the test
+# FAILREGEX: regular expression preseng in failing output of the test
+#-----------------------------------------------------------------------------------------------------------------------
 macro(add_sas_test)
-   cmake_parse_arguments(ARG  "IS_C"
+   cmake_parse_arguments(ARG  ""
                               "FILE;CHECKERS;MODERNIZE;SA_CONFIGURATION_FILE;WORKING_DIR;PASSREGEX;FAILREGEX;LABELS"
                               "" ${ARGN})
    find_program(env_cmd xenv HINTS ${binary_paths})
@@ -81,6 +92,7 @@ macro(add_sas_test)
    endif(NOT ARG_CHECKERS AND NOT ARG_MODERNIZE)
 
    set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/compile")
+
    set(FULL_FILENAME "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_FILE}")
    if(ARG_SA_CONFIGURATION_FILE)
       set(CONFIGURATION_FILENAME "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_SA_CONFIGURATION_FILE}")
@@ -91,13 +103,14 @@ macro(add_sas_test)
       set(WORKING_DIR "${CMAKE_CURRENT_LIST_DIR}")
    endif()
 
+   #Prepare test mme from file name
    string(REPLACE "${CMAKE_SOURCE_DIR}/test/" "" TEST_NAME ${FULL_FILENAME})
    string(REPLACE "/" "." TEST_NAME ${TEST_NAME})
    string(REGEX REPLACE "\\.[^.]+$" "" TEST_NAME ${TEST_NAME})
 
 
    add_test(NAME "${TEST_NAME}"
-      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} --modernize=${ARG_MODERNIZE} --sa_configuration=${CONFIGURATION_FILENAME} "${ARG_FILE}" "-c" "-std=c++11"
+      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} --modernize=${ARG_MODERNIZE} --sa_configuration=${CONFIGURATION_FILENAME} "${ARG_FILE}" "-c" "-std=c++11" "-o"
       WORKING_DIRECTORY "${WORKING_DIR}")
 
    if(ARG_PASSREGEX)
