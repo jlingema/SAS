@@ -4,6 +4,7 @@
 #  sas_LIBRARIES    - libraries to link against
 #  sas_LIBRARY_DIR  - sas library dir
 #  sas_BINARY_DIR   - binary directory
+# The macro enable_sas is also defined, allowing the user to disable checkers, and to apply clang-modernize or clang-format
 
 # Compute paths
 get_filename_component(sas_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
@@ -21,12 +22,30 @@ FIND_LIBRARY( sas_LIBRARIES NAMES libSas.so PATHS
 INCLUDE( FindPackageHandleStandardArgs )
 FIND_PACKAGE_HANDLE_STANDARD_ARGS( sas DEFAULT_MSG sas_LIBRARY_DIR sas_SCRIPT_DIR sas_LIBRARIES )
 
+#-----------------------------------------------------------------------------------------------------------------------
+# Replaces default cxx compiler with clang and applies coding convention checks.
+# Arguments:
+# FORMAT: if present, clang-format is called
+# MODERNIZE: if present, clang-modernize is called with the options specified
+# COMPARISON_REPORT_DIR: the directory in which to place the comparison report files; if none is specified
+#   ${CMAKE_BINARY_DIR}/sasreport is used.
+# DISABLE_CHECKERs: names of checkers to be disabled.
+#-----------------------------------------------------------------------------------------------------------------------
 MACRO(enable_sas)
   CMAKE_PARSE_ARGUMENTS (ARG "FORMAT"
-                        "MODERNIZE;SUMMARY"
-                        "EXCLUDE_DIRS;DISABLE_CHECKERS" ${ARGN})
-  message(STATUS "sas enabled. CXX compiler: ${CMAKE_CXX_COMPILER}")
+                        "MODERNIZE;COMPARISON_REPORT_DIR"
+                        "DISABLE_CHECKERS" ${ARGN})
+  message(STATUS "sas enabled.")
   add_definitions(--checkers="sas")
+  if(COMPARISON_REPORT_DIR)
+    set(sas_REPORT_DIR ${ARG_COMPARISON_REPORT_DIR})
+    add_definitions(--comparison_report_dir="${ARG_COMPARISON_REPORT_DIR}")
+  else()
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/sasreport)
+    set(sas_REPORT_DIR ${CMAKE_BINARY_DIR}/sasreport)
+    add_definitions(--comparison_report_dir="${CMAKE_BINARY_DIR}/sasreport")
+  endif(COMPARISON_REPORT_DIR)
+
   if(ARG_MODERNIZE)
     message(STATUS "Clang modernize ON with arguments: ${ARG_MODERNIZE}")
     add_definitions(--modernize="${ARG_MODERNIZE}")
@@ -40,4 +59,5 @@ MACRO(enable_sas)
     add_definitions(--disabled_checkers="${ARG_DISABLE_CHECKERS}")
   endif(ARG_DISABLE_CHECKERS)
   set(CMAKE_CXX_COMPILER ${sas_SCRIPT_DIR}/compile)
+  add_custom_target(report_index ${sas_SCRIPT_DIR}/report_index ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR})
 ENDMACRO()
