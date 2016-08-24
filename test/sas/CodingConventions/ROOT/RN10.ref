@@ -1,5 +1,0 @@
-CodingConventions/ROOT/RN10.cpp:2:1: warning: [sas.CodingConventions.ROOT.RN10] RN10: The names of static global variables must begin with "g"
-static int WrongName = 3;
-^
-CodingConventions/ROOT/RN10.cpp:2:1: note: [sas.CodingConventions.ROOT.RN10] RN10: The names of static global variables must begin with "g"
-1 warning generated.
