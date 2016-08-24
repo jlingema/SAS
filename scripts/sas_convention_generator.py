@@ -1,6 +1,5 @@
 '''
-This is an experimental prototype that generates naming convention checkers from a .yaml file. Currently the templates
-used to identify the object being checked are stored in /afs/cern.ch/user/d/daho/yaml/templates.
+This is an experimental prototype that generates naming convention checkers from a .yaml file.
 
 David Ho
 August 2016
@@ -33,15 +32,16 @@ class ConventionReader(object):
             "MemberStatic": "VarDecl",
             "LocalVariable": "VarDecl"
         }
-        self.template_directory = "/afs/cern.ch/user/d/daho/SAS/templates/identifiers"
+        self.template_directory = os.path.join(os.path.dirname(__file__), "..", "templates")
+        self.identifier_directory = os.path.join(self.template_directory, "identifiers")
         self.identifiers = {}
-        for file in os.listdir(self.template_directory):
+        for file in os.listdir(self.identifier_directory):
             file_name, file_extension = os.path.splitext(file)
             if file_extension == ".template":
                 template_name = os.path.splitext(file_name)[0]
-                with open(os.path.join(self.template_directory, file), "r") as fobj:
+                with open(os.path.join(self.identifier_directory, file), "r") as fobj:
                     self.identifiers[template_name] = fobj.read()
-        with open("/afs/cern.ch/user/d/daho/SAS/templates/DefaultIdentifier.template", "r") as fobj:
+        with open(os.path.join(self.template_directory, "DefaultIdentifier.template"), "r") as fobj:
             self.default_template = fobj.read()
 
     def check(self, convention_rules, object_name):
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         regex = attributes[1]
         clang_type = attributes[2]
         description = attributes[3]
-        with open("/afs/cern.ch/user/d/daho/yaml/templates/CheckerBase.cpp.template", "r") as fobj:
+        with open(os.path.join(reader.template_directory, "CheckerBase.cpp.template"), "r") as fobj:
             base_template = fobj.read()
         checker_code = base_template.format(author=reader.project_author,
             year=year,
@@ -119,7 +119,7 @@ if __name__ == "__main__":
             clang_type=clang_type,
             report_description=description,
             identifier_code=reader.identifiers[object_name])
-        with open("/afs/cern.ch/user/d/daho/yaml/templates/CheckerHeader.h.template", "r") as fobj:
+        with open(os.path.join(reader.template_directory, "CheckerHeader.h.template"), "r") as fobj:
             header_template = fobj.read()
         header_code = header_template.format(author=reader.project_author,
             year=year,
