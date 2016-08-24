@@ -1,0 +1,78 @@
+#!/usr/bin/env python
+import os
+import datetime
+import argparse
+import base64
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Formatter summary creator", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('source_dir', type=str, help='path to the source directory')
+    parser.add_argument('report_dir', type=str, help='path to the report directory')
+    args = parser.parse_args()
+
+    base_dir = os.path.abspath(args.source_dir.rstrip(os.sep))
+
+    # generate and write the report files
+    error_dict = {}
+    total_errors = len(os.listdir(args.report_dir))
+
+    for html_file in os.listdir(args.report_dir):
+        path_hash = os.path.splitext(html_file)[0]
+        file_path = base64.b64decode(path_hash)
+        directory, file_name = os.path.split(file_path)
+        if directory not in error_dict:
+            error_dict[directory] = [(file_name, html_file)]
+        else:
+            error_dict[directory].append((file_name, html_file))
+
+    substrings = []
+    visited = []
+    basedir = os.path.abspath(args.source_dir.rstrip(os.sep))
+    basedepth = len(basedir.split(os.sep))
+
+    for path, dirs, files in os.walk(basedir):
+        print path
+        if "build" in path or ".git" in path:
+            continue
+        if path == basedir:
+            visited.append(path)
+            continue
+        current_string = ""
+
+        # close the divs as needed
+        prev_depth = len(visited[-1].split(os.sep))
+        depth = len(path.split(os.sep))
+        visited.append(path)
+        if depth <= prev_depth:
+            while depth <= prev_depth:
+                substrings.append("</div>")
+                prev_depth -= 1
+        # create link + div for next sub-group
+        current_string = "<a href='#{id}' class='list-group-item' data-toggle='collapse'><i class='glyphicon glyphicon-chevron-right'></i> {name} <span class='badge'>{n}</span></a>\n<div id='{id}' class='list-group collapse'>"
+
+        cntr = 0
+        for path_name in error_dict.keys():
+            if path in path_name:
+                cntr += len(error_dict[path_name])
+        # append any files that contain formatting violations
+        if path in error_dict.keys():
+            current_string = current_string.format(id=path.replace(os.sep, "_").replace(".", "")[1:], name=os.path.basename(path), n=cntr)
+            substrings.append(current_string)
+            for fname in error_dict[path]:
+                substrings.append("<a class='list-group-item file-item' data-url='{fname}'>{title}</a>".format(fname=fname[1], title=fname[0]))
+        else:  # otherwise count the total number of errors found in sub-directories
+            current_string = current_string.format(id=path.replace(os.sep, "_").replace(".", "")[1:], name=os.path.basename(path), n=cntr)
+            substrings.append(current_string)
+
+    while depth > basedepth:
+        substrings.append("</div>")
+        depth -= 1
+
+    # populate template from ./html/
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../html/report_index.html.in"), "r") as fobj:
+        report_template = fobj.read()
+    with open(os.path.join(args.report_dir, "index.html"), "w") as fobj:
+        fobj.write(report_template.format(links="\n".join(substrings), title=os.path.basename(base_dir), n=total_errors))
+    print("--------------------------------------------------------------------------------")
+    print("Check Complete\nNumber of errors found: {total_errors}\nReport index at: {index_path}".format(total_errors=total_errors, index_path=os.path.abspath(os.path.join(args.report_dir, "index.html"))))
+    print("--------------------------------------------------------------------------------")

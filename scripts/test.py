@@ -38,6 +38,7 @@ def runTest():
    basePath = getBasePath(sas_plugin)
 
    proc = subprocess.Popen([cc, "-c", "-std=c++11", src], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=compile_env)
+   print([cc, "-c", "-std=c++11", src])
    stdout, _ = proc.communicate()
    clean_analyzer_output = cleanOutput(basePath, stdout)
 
@@ -50,5 +51,6 @@ def runTest():
       return 1
 
 if __name__ == "__main__":
+   print("xyz")
    exitCode = runTest()
    sys.exit(exitCode)
