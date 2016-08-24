@@ -27,7 +27,7 @@ namespace sas
          }
          void RN9Checker::checkASTDecl(const clang::FunctionDecl* D, clang::ento::AnalysisManager& Mgr, clang::ento::BugReporter& BR) const
          {
-            auto name = D->getName();
+            auto name = D->getNameAsString();
             if (0 == name.size()) return;
             if (name == "main") return;
             auto firstChar = name[0];

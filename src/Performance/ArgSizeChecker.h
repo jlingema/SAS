@@ -9,7 +9,7 @@ namespace sas {
 namespace Performance {
    class ArgSizeTraits : public CommonCheckerTraits{
       public:
-         static constexpr const char* Name="sas.Performance.ArgSizeChecker";
+         static constexpr const char* Name="sas.Performance.ArgSize";
          static constexpr const char* Description="Reports args passed by value with size>4k";
        };
 

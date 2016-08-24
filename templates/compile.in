@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+
+import argparse
+import sys
+import os
+import common
+import difflib
+import shutil
+
+SA_CLANG_CPP = "/afs/cern.ch/sw/lcg/external/llvm/3.6/x86_64-slc6-gcc49-opt/bin/clang++"  # note: this is system specific and set in cmake
+SA_CLANG = "/afs/cern.ch/sw/lcg/external/llvm/3.6/x86_64-slc6-gcc49-opt/bin/clang"  # note: this is system specific and set in cmake
+
+if __name__ == "__main__":
+    argparser = argparse.ArgumentParser("wrapper around clang and clang++ for easier cmake integration", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("--check_format", action="store_true", help="flag whether to check the format with clang-format")
+    argparser.add_argument("--modernize", type=str, default="", help="clang modernize arguments")
+    argparser.add_argument("--checkers", type=str, default="", help="List of checkers, separated by ':'")
+    argparser.add_argument("--sa_configuration", type=str, default="", help="SA_CONFIGURATION file")
+    argparser.add_argument("--disabled_checkers", type=str, default="", help="List of disabled checkers, separated by ';'")
+    argparser.add_argument("--comparison_report_dir", type=str, default="", help="Path to the directory in which to generate comparison reports")
+    args, compiler_args = argparser.parse_known_args()
+    command = [SA_CLANG_CPP] + compiler_args
+
+    if args.disabled_checkers:
+        disabled_checkers = filter(lambda name: name!='', args.disabled_checkers.split(";"))
+        for checker_name in disabled_checkers:
+            command += ["-Xclang", "-analyzer-disable-checker", "-Xclang", checker_name]
+
+    if args.sa_configuration:
+        os.environ["SA_CONFIGURATION"] = args.sa_configuration
+
+    retCode = common.Analyze(command, SA_CLANG_CPP,
+                             sa_formatting=args.check_format,
+                             sa_modernize=args.modernize,
+                             sa_checkers=args.checkers,
+                             comparison_report_dir=args.comparison_report_dir)
+
+    sys.exit(retCode)
