@@ -293,4 +293,4 @@ def insert_html_lines(html_filename, warnings):
         table_row = fileinput.filelineno() - line_offset
         if str(table_row) in warnings:
             for warning in warnings[str(table_row)]:
-                print(html_tr.format(warning=warning)),
+                print(html_tr.format(warning=warning))
