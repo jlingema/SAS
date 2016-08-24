@@ -8,7 +8,22 @@ if(ROOT_CHECKERS)
    add_subdirectory(BWList)
 endif()
 
-add_sas_test(FILE "comment_checker_disabler.cpp" 
-             CHECKERS "sas.Example.Varname:sas.CodingConventions.General.NoUsingNamespaceInHeaders:sas.ThreadSafety.ConstCast"
-             PASSREGEX ":18:1.*:19:1:.*:17:3:.*:24:3:.*:30:3:.*:35:3:.*:40:3:.*:45:3:.*:50:3:.*:53:3:.*:62:3:.*:65:35:.*:75:35:.*13 warnings")
+if(EXAMPLE_CHECKERS)
+  set(comment_checker_disabler_passregex ":18:1:.*NoUsingNamespaceInHeaders.*"
+                                         ":19:1:.*NoUsingNamespaceInHeaders.*"
+                                         ":17:3:.*Varname.*"
+                                         ":24:3:.*Varname.*"
+                                         ":30:3:.*Varname.*"
+                                         ":35:3:.*Varname.*"
+                                         ":40:3:.*Varname.*"
+                                         ":45:3:.*Varname.*"
+                                         ":50:3:.*Varname.*"
+                                         ":62:3:.*Varname.*"
+                                         ":65:35:.*ConstCast.*"
+                                         ":75:35:.*ConstCast.*"
+                                         "13 warnings")
+  add_sas_test(FILE "comment_checker_disabler.cpp" 
+               CHECKERS "sas.Example.Varname:sas.CodingConventions.General.NoUsingNamespaceInHeaders:sas.ThreadSafety.ConstCast"
+               PASSREGEX ${comment_checker_disabler_passregex})
+endif()
 add_sas_test(FILE "loop_convert.cpp" MODERNIZE "-risk=safe -loop-convert" PASSREGEX "11,18")

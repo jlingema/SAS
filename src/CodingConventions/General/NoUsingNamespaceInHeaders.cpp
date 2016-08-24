@@ -25,7 +25,7 @@ namespace sas {
             if (isDeclOK(D, BR)) return;
             std::string NS = D->getQualifier()->getAsNamespace()->getNameAsString();
             if (strcmp(NS.c_str(), "std") != 0) return; // Different from "std"
-            Report(D, "Detected usage of 'using std::' in a header.", BR);
+            Report(D, "[sas.CodingConventions.General.NoUsingNamespaceInHeaders] Detected usage of 'using std::' in a header.", BR);
          }
 
 // Declaration D is OK (function returns true) if:

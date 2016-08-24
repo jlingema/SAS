@@ -1,1 +1,1 @@
-add_sas_test(FILE "varname.cpp" CHECKERS "sas.Example.Varname" PASSREGEX ":8:3:.*1 warning")
+add_sas_test(FILE "varname.cpp" CHECKERS "sas.Example.Varname" PASSREGEX ":8:3:.*Varname.*1 warning")

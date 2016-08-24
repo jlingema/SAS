@@ -110,7 +110,8 @@ macro(add_sas_test)
 
 
    add_test(NAME "${TEST_NAME}"
-      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} --modernize=${ARG_MODERNIZE} --sa_configuration=${CONFIGURATION_FILENAME} "${ARG_FILE}" "-c" "-std=c++11" "-o"
+      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} --modernize=${ARG_MODERNIZE}
+      --sa_configuration=${CONFIGURATION_FILENAME} "${ARG_FILE}" "-c" "-std=c++11" "-o" "${CMAKE_BINARY_DIR}/{ARG_FILE}.o"
       WORKING_DIRECTORY "${WORKING_DIR}")
 
    if(ARG_PASSREGEX)
