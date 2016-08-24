@@ -91,7 +91,7 @@ macro(add_sas_test)
       message( SEND_ERROR "Specify modernize or checkers configuration!" )
    endif(NOT ARG_CHECKERS AND NOT ARG_MODERNIZE)
 
-   set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/compile")
+   set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/sas_check")
 
    set(FULL_FILENAME "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_FILE}")
    if(ARG_SA_CONFIGURATION_FILE)

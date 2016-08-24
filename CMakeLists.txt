@@ -87,7 +87,7 @@ set(CLANG_MODERNIZE_PATH "${CLANG_EXES_LOCATION}clang-modernize")
 configure_file(templates/clang.in ${CMAKE_BINARY_DIR}/scripts/clang)
 configure_file(templates/clang++.in ${CMAKE_BINARY_DIR}/scripts/clang++)
 configure_file(templates/common/__init__.py.in ${CMAKE_BINARY_DIR}/scripts/common/__init__.py)
-configure_file(templates/compile.in ${CMAKE_BINARY_DIR}/scripts/compile)
+configure_file(templates/sas_check.in ${CMAKE_BINARY_DIR}/scripts/sas_check)
 
 install(TARGETS libSas DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX} PATTERN "*.pyc" EXCLUDE)
