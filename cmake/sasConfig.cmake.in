@@ -34,23 +34,25 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS( sas DEFAULT_MSG sas_LIBRARY_DIR sas_SCRIPT_DI
 MACRO(enable_sas)
   CMAKE_PARSE_ARGUMENTS (ARG "FORMAT"
                         "MODERNIZE;COMPARISON_REPORT_DIR"
-                        "DISABLE_CHECKERS" ${ARGN})
+                        "DISABLE_CHECKERS;IGNORE_DIRS" ${ARGN})
+  set(CMAKE_CXX_COMPILER ${sas_SCRIPT_DIR}/sas_check)
   message(STATUS "sas enabled.")
   add_definitions(--checkers="sas")
   if(ARG_COMPARISON_REPORT_DIR)
     set(sas_REPORT_DIR ${ARG_COMPARISON_REPORT_DIR})
     add_definitions(--comparison_report_dir="${ARG_COMPARISON_REPORT_DIR}")
   else()
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/sasreport)
     set(sas_REPORT_DIR ${CMAKE_BINARY_DIR}/sasreport)
     add_definitions(--comparison_report_dir="${CMAKE_BINARY_DIR}/sasreport")
   endif(ARG_COMPARISON_REPORT_DIR)
 
   if(ARG_MODERNIZE)
+    set(MODERNIZE_ON "-modernize_on")
     message(STATUS "Clang modernize ON with arguments: ${ARG_MODERNIZE}")
     add_definitions(--modernize="${ARG_MODERNIZE}")
   endif(ARG_MODERNIZE)
   if(ARG_FORMAT)
+    set(FORMAT_ON "-format_on")
     message(STATUS "Check-format ON")
     add_definitions(--check_format)
   endif(ARG_FORMAT)
@@ -58,6 +60,17 @@ MACRO(enable_sas)
     message(STATUS "Disabled checkers: ${ARG_DISABLE_CHECKERS}")
     add_definitions(--disabled_checkers="${ARG_DISABLE_CHECKERS}")
   endif(ARG_DISABLE_CHECKERS)
-  set(CMAKE_CXX_COMPILER ${sas_SCRIPT_DIR}/sas_check)
-  add_custom_target(report_index ${sas_SCRIPT_DIR}/sas_create_index ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR})
+  add_custom_target(report_index ${sas_SCRIPT_DIR}/sas_create_index ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR} "--ignore_dirs" "${ARG_IGNORE_DIRS}")
+
+  #Generate html diffs for header files:
+  file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR} "*.h" "*.hpp")
+  message(STATUS "Running modernize/format on header files")
+  foreach(HEADER_FILE ${HEADER_FILES})
+    execute_process(COMMAND python ${sas_SCRIPT_DIR}/sas_modernize_format
+                    "-filename=${HEADER_FILE}"
+                    ${MODERNIZE_ON}
+                    ${FORMAT_ON}
+                    "-modernize_options=${ARG_MODERNIZE}"
+                    "-comparison_report_dir=${sas_REPORT_DIR}")
+  endforeach()
 ENDMACRO()

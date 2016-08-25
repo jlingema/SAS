@@ -1,0 +1,15 @@
+#!/usr/bin/env python
+import common
+import argparse
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Writes html diff tables checking modernization and formatting rules", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-filename", type=str, help="Path to source file")
+    parser.add_argument("-modernize_on", action="store_true", help="Whether to run clang-modernize")
+    parser.add_argument("-format_on", action="store_true", help="Whether to run clang-format")
+    parser.add_argument("-modernize_options", type=str, help="Clang-modernize command line options")
+    parser.add_argument("-format_options", type=str, help="Clang-format command line options", default="")
+    parser.add_argument("-comparison_report_dir", type=str, help="Path to comparison report directory")
+    args = parser.parse_args()
+
+    common.modernizeAndFormat(args.filename, args.modernize_on, args.format_on, args.modernize_options, args.format_options, args.comparison_report_dir)
