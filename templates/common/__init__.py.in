@@ -48,7 +48,8 @@ def _Bold(text):
    '''
    return "\033[1m%s \033[m" %text
 
-def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
+
+def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=[]):
    '''
    Wrap the compilation command and force clang to run static analysis.
    Invoke SA and compilation
@@ -58,8 +59,11 @@ def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
    BASE_XCLANG_ARGS = ["-Xclang", "-analyze", "-Xclang", "-analyzer-output=text"]
 
    env = os.environ
-   sa_checkersString = env[SA_CHECKERS] if SA_CHECKERS in env else checkers
-   sa_checkers = filter(lambda name: name!='', sa_checkersString.split(":"))
+   if SA_CHECKERS in env:
+     sa_checkersString = env[SA_CHECKERS]
+     sa_checkers = filter(lambda name: name!='', sa_checkersString.split(":"))
+   else:
+      sa_checkers = checkers
    compilerArguments = command[1:]
    sa_checker_output = ""
 
@@ -119,7 +123,7 @@ def _CompareFiles(filename, clangFormatOutput, outputType):
     if nViolations >0 :
         plural = "" if nViolations == 1 else "s"
         print (_Bold(_Purple("warning:")), _Bold('%s %s%s detected.' %(nViolations,outputType,plural)), file=sys.stderr)
-        print ("\n".join(diffLines), file=sys.stderr)
+        #print ("\n".join(diffLines), file=sys.stderr)
         return nViolations
     return nViolations
 
@@ -155,7 +159,7 @@ def _IsSourceFile(filename):
     fileExtension = os.path.splitext(filename)[1]
     return fileExtension in _SourceFilesExtensions
 
-def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, modernize_on=False, modernize_options="", sa_checkers="", comparison_report_dir=""):
+def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, modernize_on=False, modernize_options="", sa_checkers=[], comparison_report_dir=""):
     '''
     Perform static analysis and check of formatting rules if requested
     '''
@@ -269,8 +273,7 @@ def ParseCheckerOutput(checker_output):
     return(warnings)
 
 def InsertHtmlLines(html_filename, warnings):
-    line_offset = 7
-    html_tr = '<tr><td></td><td></td><td bgcolor=#ffff66 class="checker_warning">{warning}</td><td></td><td></td><td nowrap="nowrap"></td></tr>'
+    html_tr = '<tr><td></td><td></td><td><div class="alert alert-warning" role="alert">{warning}</div></td><td></td><td></td><td nowrap="nowrap"></td></tr>'
     for line in fileinput.input(os.path.abspath(html_filename), inplace=True):
         print(line),
         line_regex = re.compile("from0_([0-9]+)")

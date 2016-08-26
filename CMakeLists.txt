@@ -8,7 +8,7 @@
 # Usage:
 # cmake [-D LLVM_DEV_DIR=$LLVM_DEV_DIR] $SAS_DIR
 
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 2.8)
 project (sas CXX)
 
 set( sas_VERSION_MAJOR 0 )
