@@ -23,7 +23,9 @@ INCLUDE( FindPackageHandleStandardArgs )
 FIND_PACKAGE_HANDLE_STANDARD_ARGS( sas DEFAULT_MSG sas_LIBRARY_DIR sas_SCRIPT_DIR sas_LIBRARIES )
 
 #-----------------------------------------------------------------------------------------------------------------------
-# Replaces default cxx compiler with clang and applies coding convention checks.
+# Replaces default cxx compiler with clang and applies coding convention checks. By default, all sas checkers present
+# are run unless disabled in the DISABLE_CHECKERS argument. All arguments are optional; calling enable_sas() will run
+# checkers without formatting or modernizing.
 # Arguments:
 # FORMAT: if present, clang-format is called
 # MODERNIZE: if present, clang-modernize is called with the options specified in MODERNIZE_OPTIONS
