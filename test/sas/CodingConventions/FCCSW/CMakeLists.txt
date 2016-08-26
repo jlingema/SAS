@@ -15,4 +15,4 @@ add_sas_test(FILE "Namespace.cpp"
   PASSREGEX "10:1:.*Namespace.*:14:1:.*Namespace.*:18:1:.*Namespace.*3 warnings")
 add_sas_test(FILE "Type.cpp"
   CHECKERS "sas.CodingConventions.FCCSW.Type" 
-  PASSREGEX ":7:3:.*Type.*:12:1:.*Type.*:16:1:.*Type.*:18:10:.*Type.*4 warnings")
+  PASSREGEX ":7:3:.*Type.*:12:1:.*Type.*:16:1:.*Type.*3 warnings")

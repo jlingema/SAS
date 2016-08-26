@@ -18,8 +18,11 @@ void ConstChecker::checkASTDecl(const clang::VarDecl* D,
   std::regex correctRegex("^k[A-Z][a-zA-Z0-9]+");
   auto nameString = D->getNameAsString();
   auto type = D->getType();
+  if (D->isLocalVarDeclOrParm()) {
+    return;
+  }
   if (!type.isConstQualified()) {
-      return;
+    return;
   }
 
   if (!std::regex_match(nameString, correctRegex)) {

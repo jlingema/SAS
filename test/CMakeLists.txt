@@ -26,4 +26,4 @@ if(EXAMPLE_CHECKERS)
                CHECKERS "sas.Example.Varname:sas.CodingConventions.General.NoUsingNamespaceInHeaders:sas.ThreadSafety.ConstCast"
                PASSREGEX ${comment_checker_disabler_passregex})
 endif()
-add_sas_test(FILE "loop_convert.cpp" MODERNIZE MODERNIZE_OPTIONS "-risk=safe -loop-convert" PASSREGEX "11,18")
+add_sas_test(FILE "loop_convert.cpp" MODERNIZE MODERNIZE_OPTIONS "-risk=safe -loop-convert" PASSREGEX "2.*modernization")

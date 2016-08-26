@@ -15,7 +15,7 @@ void FunctionChecker::checkASTDecl(const clang::FunctionDecl* D,
                                 clang::ento::AnalysisManager& Mgr,
                                 clang::ento::BugReporter& BR) const {
   const char *reportDescription = "[sas.CodingConventions.FCCSW.Function] Function names must be in lowerCamelCase.";
-  std::regex correctRegex("^[a-z][[:alnum:]]+");
+  std::regex correctRegex("^[a-z][a-zA-Z0-9+*=!<>&|~,\\%%\\/\\^\\-]+");
   auto nameString = D->getNameAsString();
   auto declName = D->getDeclName();
   auto nameKind = declName.getNameKind();
