@@ -74,6 +74,7 @@ add_clang_plugin(libSas
 file(COPY scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 file(COPY config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 file(COPY templates/report_index.html.in DESTINATION ${CMAKE_BINARY_DIR}/html)
+file(COPY templates/report_footer.html DESTINATION ${CMAKE_BINARY_DIR}/html)
 
 #modify script clang path to the real one
 if (LLVM_BIN_DIR)

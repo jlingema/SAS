@@ -91,10 +91,14 @@ if __name__ == "__main__":
         depth -= 1
 
     # populate template from ./html/
+    footer = ""
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../html/report_footer.html"), "r") as fobj:
+        footer = fobj.read()
     with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../html/report_index.html.in"), "r") as fobj:
         report_template = fobj.read()
     with open(os.path.join(args.report_dir, "index.html"), "w") as fobj:
         fobj.write(report_template.format(links="\n".join(substrings), title=os.path.basename(base_dir), n=total_errors))
+        fobj.write(footer)
     print("--------------------------------------------------------------------------------")
     print("Check Complete\nNumber of files with errors: {total_errors}\nReport index at: {index_path}".format(total_errors=total_errors, index_path=os.path.abspath(os.path.join(args.report_dir, "index.html"))))
     print("--------------------------------------------------------------------------------")
