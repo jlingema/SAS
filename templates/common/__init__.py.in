@@ -48,7 +48,7 @@ def _Bold(text):
    '''
    return "\033[1m%s \033[m" %text
 
-ef _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
+def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
    '''
    Wrap the compilation command and force clang to run static analysis.
    Invoke SA and compilation
