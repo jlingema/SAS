@@ -32,7 +32,7 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS( sas DEFAULT_MSG sas_LIBRARY_DIR sas_SCRIPT_DI
 # MODERNIZE_OPTIONS: command-line options to be passed to clang-modernize
 # COMPARISON_REPORT_DIR: the directory in which to place the comparison report files; if none is specified
 #   ${CMAKE_BINARY_DIR}/sasreport is used.
-# DISABLE_CHECKERs: names of checkers to be disabled.
+# DISABLE_CHECKERS: names of checkers to be disabled, separated by ' '.
 #-----------------------------------------------------------------------------------------------------------------------
 MACRO(enable_sas)
   CMAKE_PARSE_ARGUMENTS (ARG "FORMAT;MODERNIZE"
@@ -64,7 +64,7 @@ MACRO(enable_sas)
   endif(ARG_FORMAT)
   if(ARG_DISABLE_CHECKERS)
     message(STATUS "Disabled checkers: ${ARG_DISABLE_CHECKERS}")
-    add_definitions(--disabled_checkers="${ARG_DISABLE_CHECKERS}")
+    add_definitions(--disabled_checkers=${ARG_DISABLE_CHECKERS})
   endif(ARG_DISABLE_CHECKERS)
   if(ARG_IGNORE_DIRS)
     add_definitions(--ignore_dirs ${ARG_IGNORE_DIRS})
@@ -73,9 +73,10 @@ MACRO(enable_sas)
 
   #Generate html diffs for header files:
   file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR} "*.h" "*.hpp")
-  message(STATUS "Running SAS on header files")
   foreach(HEADER_FILE ${HEADER_FILES})
-    execute_process(COMMAND ${sas_SCRIPT_DIR}/sas_check
+    string(REPLACE "/" "." NAME ${HEADER_FILE})
+    add_custom_target(${NAME} ALL
+      COMMAND ${sas_SCRIPT_DIR}/sas_check
                     "${FORMAT_ON}"
                     "--ignore_dirs" ${ARG_IGNORE_DIRS}
                     "--do_not_compile"
