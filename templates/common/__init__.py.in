@@ -183,24 +183,26 @@ def _IsSourceFile(filename):
     fileExtension = os.path.splitext(filename)[1]
     return fileExtension in _SourceFilesExtensions
 
-def Analyze(command, sa_clang_compiler, sa_formatting=False, sa_modernize="", sa_checkers="", comparison_report_dir=""):
+def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, modernize_on=False, modernize_options="", sa_checkers="", comparison_report_dir=""):
     '''
     Perform static analysis and check of formatting rules if requested
     '''
-    returnVal=0
-    format_on = "SA_FORMATTING" in os.environ or sa_formatting
-    modernize_on = "SA_MODERNIZE" in os.environ or sa_modernize != ""
     sources = filter(_IsSourceFile, command)
-    includes = filter(lambda option: option[:2] == "-I", command)
-    modernize_options = ""
+    includes = filter(lambda option: option.startswith("-I"), command)
+    if "SA_FORMATTING" in os.environ:
+        format_on = True
     if "SA_MODERNIZE" in os.environ:
+        modernize_on = True
         modernize_options += os.environ['SA_MODERNIZE']
-    if sa_modernize != "":
-        modernize_options += sa_modernize
-    if modernize_options != "":
+    if modernize_on:
         modernize_options = modernize_options + " -- " + " ".join(includes) + " -c -std=c++11"
 
-    compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
+    if do_not_compile:
+        compilation_ret = 0
+        checker_output = ""
+        modernize_on = False
+    else:
+        compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
 
     if comparison_report_dir != "":
         if not os.path.exists(comparison_report_dir):
@@ -214,7 +216,7 @@ def Analyze(command, sa_clang_compiler, sa_formatting=False, sa_modernize="", sa
             fobj.writelines(unique_warnings)
 
     for source in sources:
-        results, num_violations = modernizeAndFormat(source, modernize_on, format_on, modernize_options, "", comparison_report_dir)
+        results, num_violations = _ModernizeAndFormat(source, modernize_on, format_on, modernize_options, "", comparison_report_dir)
 
     return compilation_ret
 
@@ -234,7 +236,7 @@ def CheckFormat(command, sa_clang_compiler):
     return returnVal, returnMap, output
 
 
-def modernizeAndFormat(filename, modernize_on, format_on, modernize_options="", format_options="", comparison_report_dir=""):
+def _ModernizeAndFormat(filename, modernize_on, format_on, modernize_options="", format_options="", comparison_report_dir=""):
     '''
     Run either or both of modernize and Clang Format and capture the output
     '''
@@ -281,7 +283,7 @@ def modernizeAndFormat(filename, modernize_on, format_on, modernize_options="", 
 
     return result, num_violations
 
-def parse_checker_output(checker_output):
+def ParseCheckerOutput(checker_output):
     warnings = {}
     output_lines = checker_output.split("\n")
     warning_line_regex = re.compile(":([0-9]+):([0-9]+): warning")
@@ -299,7 +301,7 @@ def parse_checker_output(checker_output):
                 warnings[file_path][line_number] = [warning_text]
     return(warnings)
 
-def insert_html_lines(html_filename, warnings):
+def InsertHtmlLines(html_filename, warnings):
     line_offset = 7
     html_tr = '<tr><td></td><td></td><td bgcolor=#ffff66 class="checker_warning">{warning}</td><td></td><td></td><td nowrap="nowrap"></td></tr>'
     for line in fileinput.input(os.path.abspath(html_filename), inplace=True):

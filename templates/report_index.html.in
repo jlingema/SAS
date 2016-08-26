@@ -51,6 +51,9 @@
     #diff {{
       overflow:scroll;
     }}
+    td.checker_warning {{
+      bgcolor: #ffff66;
+    }}
     span.diff_sub {{background-color: #FF888D;}}
     span.diff_add {{background-color: #CCFFC7;}}
     </style>
