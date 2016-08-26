@@ -8,7 +8,7 @@
 # Usage:
 # cmake [-D LLVM_DEV_DIR=$LLVM_DEV_DIR] $SAS_DIR
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.0)
 project (sas CXX)
 
 set( sas_VERSION_MAJOR 0 )
@@ -47,6 +47,7 @@ set (USER_LIBS pthread)
 option(FCCSW_CHECKERS "Turn on to activate FCCSW coding convention checkers." OFF)
 option(ROOT_CHECKERS "Turn on to activate ROOT coding convention checkers." OFF)
 option(GENERAL_CHECKERS "Turn on to activate general coding convention checkers." ON)
+option(EXAMPLE_CHECKERS "Turn on to activate SAS example checkers." OFF)
 
 add_subdirectory(src)
 
@@ -97,6 +98,3 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/html DESTINATION ${CMAKE_INSTALL_PREFIX})
 # Remove persistent cached variables
 unset(checker_paths CACHE)
 unset(checker_relative_paths CACHE)
-unset(FCCSW_CHECKERS CACHE)
-unset(ROOT_CHECKERS CACHE)
-unset(GENERAL_CHECKERS CACHE)

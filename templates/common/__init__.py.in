@@ -48,7 +48,7 @@ def _Bold(text):
    '''
    return "\033[1m%s \033[m" %text
 
-def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
+ef _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=""):
    '''
    Wrap the compilation command and force clang to run static analysis.
    Invoke SA and compilation
@@ -132,39 +132,11 @@ def _ComparisonReport(filename, clangFormatOutput):
 
     return diffLinesGen
 
-def _RunClangCommand(command, filename):
-    '''
-    Run clang-format and capture output
-    '''
-    process = subprocess.Popen([command,filename], stdout=subprocess.PIPE)
-    result = process.communicate()[0]
-    return result
-
-def _RunClangModernize(command, filename, options):
-    '''
-    Run clang-modernize and capture output
-    '''
-    basename=os.path.basename(filename)
-    tempname=basename[:basename.rfind('.')] + '.temp' + basename[basename.rfind('.'):]
-    dirname=os.path.dirname(filename)
-    tempfile=os.path.join(dirname, tempname)
-
-    shutil.copyfile(filename, tempfile)
-    optionsList = options.split(' ')
-
-    process = subprocess.Popen([command] + [tempfile] + optionsList, stdout = subprocess.PIPE)
-    process.communicate()[0]
-    resultFile = open(tempfile, 'r')
-    result = resultFile.read()
-    resultFile.close()
-    os.remove(tempfile)
-    return result
-
 def CheckFormattingRules(filename):
     '''
     Check the formatting rules
     '''
-    clangFormatOutput = _RunClangCommand(_ClangFormatExeName, filename)
+    clangFormatOutput = _RunClangTools(filename, format_on=True)
     nViolations = _CompareFiles(filename, clangFormatOutput, 'code formatting rules violation')
     return clangFormatOutput, nViolations
 
@@ -172,7 +144,7 @@ def ClangModernize(options, filename):
     '''
     Run clang-modernize on sources
     '''
-    clangModernizeOutput = _RunClangModernize(_ClangModernizeExeName, filename, options)
+    clangModernizeOutput = _RunClangTools(filename, modernize_on=True, modernize_options=options)
     nViolations = _CompareFiles(filename, clangModernizeOutput, 'available clang-modernize transformation')
     return clangModernizeOutput, nViolations
 
@@ -183,32 +155,53 @@ def _IsSourceFile(filename):
     fileExtension = os.path.splitext(filename)[1]
     return fileExtension in _SourceFilesExtensions
 
-def Analyze(command, sa_clang_compiler, sa_formatting=False, sa_modernize="", sa_checkers="", comparison_report_dir=""):
+def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, modernize_on=False, modernize_options="", sa_checkers="", comparison_report_dir=""):
     '''
     Perform static analysis and check of formatting rules if requested
     '''
-    returnVal=0
-    format_on = "SA_FORMATTING" in os.environ or sa_formatting
-    modernize_on = "SA_MODERNIZE" in os.environ or sa_modernize != ""
     sources = filter(_IsSourceFile, command)
-    includes = filter(lambda option: option[:2] == "-I", command)
-    modernize_options = ""
+    includes = filter(lambda option: option.startswith("-I"), command)
+    if "SA_FORMATTING" in os.environ:
+        format_on = True
     if "SA_MODERNIZE" in os.environ:
+        modernize_on = True
         modernize_options += os.environ['SA_MODERNIZE']
-    if sa_modernize != "":
-        modernize_options += sa_modernize
-    if modernize_options != "":
+    if modernize_on:
         modernize_options = modernize_options + " -- " + " ".join(includes) + " -c -std=c++11"
 
-    compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
+    if do_not_compile:
+        compilation_ret = 0
+        checker_output = ""
+        modernize_on = False
+    else:
+        compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
 
-    output_warnings = parse_checker_output(checker_output)
+    output_type = ""
+    if modernize_on and format_on:
+        output_type = "formatting/modernization change"
+    elif modernize_on:
+        output_type = "clang modernization transformation"
+    elif format_on:
+        output_type = "code formatting rules violation"
+
+    if comparison_report_dir != "":
+        if not os.path.exists(comparison_report_dir):
+            os.makedirs(comparison_report_dir)
+        warning_file = os.path.join(comparison_report_dir, "checker_warnings.txt")
+        with open(warning_file, "w+") as fobj:
+            all_warnings = fobj.readlines() + checker_output.splitlines()
+            unique_warnings = set(all_warnings)
+            fobj.write("\n".join(unique_warnings))
 
     for source in sources:
-        results, num_violations = modernizeAndFormat(source, modernize_on, format_on, modernize_options, "", comparison_report_dir)
+        result = _RunClangTools(source, modernize_on, format_on, modernize_options, "")
+        num_violations = _CompareFiles(source, result, output_type)
+        html_diff_map = _ComparisonReport(source, result)
         if comparison_report_dir != "":
-            html_filename = base64.b64encode(os.path.join(comparison_report_dir, source)) + ".html"
-            insert_html_lines(os.path.join(comparison_report_dir, html_filename), output_warnings)
+            html_info = os.path.join(source, str(num_violations))
+            path_hash = base64.b64encode(html_info)
+            with open(os.path.join(comparison_report_dir, path_hash + ".html"), "w") as fobj:
+                fobj.write(html_diff_map)
 
     return compilation_ret
 
@@ -221,23 +214,17 @@ def CheckFormat(command, sa_clang_compiler):
     sources = filter(_IsSourceFile, command)
     if os.environ.has_key("SA_FORMATTING"):
        for source in sources:
-         clangFormatOutput = _RunClangCommand(_ClangFormatExeName, source)
+         clangFormatOutput = _RunClangTools(source, format_on=True)
          difflines = _ComparisonReport(source, clangFormatOutput)
          returnMap[source] = difflines
     returnVal, output = _WrapClangCommand(command, sa_clang_compiler)
     return returnVal, returnMap, output
 
 
-def modernizeAndFormat(filename, modernize_on, format_on, modernize_options="", format_options="", comparison_report_dir=""):
+def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_options="", format_options=""):
     '''
     Run either or both of modernize and Clang Format and capture the output
     '''
-    if modernize_on and format_on:
-        output_type = "formatting/modernization change"
-    elif modernize_on:
-        output_type = "clang modernization transformation"
-    elif format_on:
-        output_type = "code formatting rules violation"
     basename=os.path.basename(filename)
     tempname=basename[:basename.rfind('.')] + '.temp' + basename[basename.rfind('.'):]
     dirname=os.path.dirname(filename)
@@ -261,36 +248,34 @@ def modernizeAndFormat(filename, modernize_on, format_on, modernize_options="", 
         result = fobj.read()
     os.remove(tempfile)
 
-    num_violations = _CompareFiles(filename, result, output_type)
-    html_diff_map = _ComparisonReport(filename, result)
+    return result
 
-    if comparison_report_dir != "":
-        path_hash = base64.b64encode(filename)
-        with open(os.path.join(comparison_report_dir, path_hash + ".html"), "w") as fobj:
-            fobj.write(html_diff_map)
-
-    return result, num_violations
-
-def parse_checker_output(checker_output):
+def ParseCheckerOutput(checker_output):
     warnings = {}
     output_lines = checker_output.split("\n")
-    warning_line_regex = re.compile(":([0-9]+):([0-9]+):")
+    warning_line_regex = re.compile(":([0-9]+):([0-9]+): warning")
     for line in output_lines:
         match = warning_line_regex.search(line)
         if match:
+            file_path = line[:match.start()]
+            if file_path not in warnings:
+                warnings[file_path] = {}
+            warning_text = line[match.end() + 1:]
             line_number = match.group(1)
-            if line_number in warnings:
-                warnings[line_number].append(line)
+            if line_number in warnings[file_path]:
+                warnings[file_path][line_number].append(warning_text)
             else:
-                warnings[line_number] = [line]
+                warnings[file_path][line_number] = [warning_text]
     return(warnings)
 
-def insert_html_lines(html_filename, warnings):
+def InsertHtmlLines(html_filename, warnings):
     line_offset = 7
-    html_tr = '<tr><td class="checker_warning"></td><td></td><td nowrap="wrap">{warning}</td><td></td><td></td><td nowrap="nowrap"></td></tr>'
-    for line in fileinput.input(html_filename, inplace=True):
+    html_tr = '<tr><td></td><td></td><td bgcolor=#ffff66 class="checker_warning">{warning}</td><td></td><td></td><td nowrap="nowrap"></td></tr>'
+    for line in fileinput.input(os.path.abspath(html_filename), inplace=True):
         print(line),
-        table_row = fileinput.filelineno() - line_offset
-        if str(table_row) in warnings:
-            for warning in warnings[str(table_row)]:
-                print(html_tr.format(warning=warning))
+        line_regex = re.compile("from0_([0-9]+)")
+        match = line_regex.search(line)
+        if match:
+            if match.group(1) in warnings:
+                for warning in warnings[match.group(1)]:
+                    print(html_tr.format(warning=warning)),

@@ -71,16 +71,17 @@ endmacro(generate_registry_code)
 # Arguments:
 # FILE: file test is to be run on
 # CHECKERS: colon-separated list of checkers to be used
-# MODERNIZE: clang-modernize Arguments
+# MODERNIZE: whether to apply clang-modernize
+# MODERNIZE_OPTIONS: clang-modernize options
 # SA_CONFIGURATION_FILE: SA configuration file for blacklisting/whitelisting checkers
 # WORKING_DIR: working directory in which the test is run; defaults to ${CMAKE_CURRENT_LIST_DIR}
 # PASSREGEX: regular expression present in the passing output of the test
 # FAILREGEX: regular expression preseng in failing output of the test
 #-----------------------------------------------------------------------------------------------------------------------
 macro(add_sas_test)
-   cmake_parse_arguments(ARG  ""
-                              "FILE;CHECKERS;MODERNIZE;SA_CONFIGURATION_FILE;WORKING_DIR;PASSREGEX;FAILREGEX;LABELS"
-                              "" ${ARGN})
+   cmake_parse_arguments(ARG  "MODERNIZE"
+                              "FILE;CHECKERS;SA_CONFIGURATION_FILE;WORKING_DIR;PASSREGEX;FAILREGEX;LABELS"
+                              "MODERNIZE_OPTIONS" ${ARGN})
    find_program(env_cmd xenv HINTS ${binary_paths})
 
    if (NOT ARG_FILE)
@@ -90,6 +91,10 @@ macro(add_sas_test)
    if(NOT ARG_CHECKERS AND NOT ARG_MODERNIZE)
       message( SEND_ERROR "Specify modernize or checkers configuration!" )
    endif(NOT ARG_CHECKERS AND NOT ARG_MODERNIZE)
+
+   if(ARG_MODERNIZE)
+      set(MODERNIZE_ON "--modernize")
+   endif(ARG_MODERNIZE)
 
    set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/sas_check")
 
@@ -110,7 +115,8 @@ macro(add_sas_test)
 
 
    add_test(NAME "${TEST_NAME}"
-      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} --modernize=${ARG_MODERNIZE} --sa_configuration=${CONFIGURATION_FILENAME} "${ARG_FILE}" "-c" "-std=c++11" "-o"
+      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} ${MODERNIZE_ON} --modernize_options=${ARG_MODERNIZE_OPTIONS}
+      --sa_configuration=${CONFIGURATION_FILENAME} "${ARG_FILE}" "-c" "-std=c++11" "-o" "${CMAKE_BINARY_DIR}/{ARG_FILE}.o"
       WORKING_DIRECTORY "${WORKING_DIR}")
 
    if(ARG_PASSREGEX)
