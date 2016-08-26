@@ -98,6 +98,3 @@ install(DIRECTORY ${CMAKE_BINARY_DIR}/html DESTINATION ${CMAKE_INSTALL_PREFIX})
 # Remove persistent cached variables
 unset(checker_paths CACHE)
 unset(checker_relative_paths CACHE)
-unset(FCCSW_CHECKERS CACHE)
-unset(ROOT_CHECKERS CACHE)
-unset(GENERAL_CHECKERS CACHE)

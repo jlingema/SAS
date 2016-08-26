@@ -9,14 +9,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser("Formatter summary creator", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("source_dir", type=str, help='path to the source directory')
     parser.add_argument("report_dir", type=str, help='path to the report directory')
-    parser.add_argument("--ignore_dirs", type=str, help="paths to directories to be ignored, separated by ';'")
+    parser.add_argument("--ignore_dirs", type=str, help="paths to directories to be ignored", nargs="+")
     args = parser.parse_args()
-
-    ignore_dirs = args.ignore_dirs.split(";")
 
     with open(os.path.join(args.report_dir, "checker_warnings.txt"), "r") as fobj:
         checker_output = fobj.read()
-    warnings = common.parse_checker_output(checker_output)
+    warnings = common.ParseCheckerOutput(checker_output)
 
     base_dir = os.path.abspath(args.source_dir.rstrip(os.sep))
 
@@ -31,7 +29,7 @@ if __name__ == "__main__":
         file_info = base64.b64decode(path_hash)
         file_path, num_violations = os.path.split(file_info)
         if file_path in warnings:
-            common.insert_html_lines(os.path.join(args.report_dir, html_file), warnings[file_path])
+            common.InsertHtmlLines(os.path.join(args.report_dir, html_file), warnings[file_path])
         elif int(num_violations) == 0:
             os.remove(os.path.join(args.report_dir, html_file))
             continue
@@ -50,7 +48,7 @@ if __name__ == "__main__":
     for path, dirs, files in os.walk(basedir):
         if ".git" in path or ".svn" in path:
             continue
-        for directory in ignore_dirs:
+        for directory in args.ignore_dirs:
             if path.startswith(directory):
                 ignore = True
             else:
