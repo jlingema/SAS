@@ -98,12 +98,16 @@ Consult the file *src/CheckerDisabler.h* for instructions on how to disable your
 ## <a id="creditAndHistory"></a> Credit and History
 SAS originates from an effort within the CMS collaboration at CERN and quite some checkers were imported from CMSSW (http://cms-sw.github.io/). CMSSSW and its authors cannot be blamed by any mistake or bug present in SAS :-) The credit of single developers is preserved within the single source files. The first version of SAS was created by F. Bartek, D. Piparo and T. Hauth.
 
+The HTML summary page relies on bootstrap and hightlight js (see below for links).
+
 ## Useful Links:
 * LLVM:                  http://llvm.org
 * Clang:                 http://clang.llvm.org
 * Clang Static Analyzer: http://clang-analyzer.llvm.org
 * scan-build:            http://clang-analyzer.llvm.org/scan-build.html
 * CMake:                 http://www.cmake.org
+* Bootstrap:             http://getbootstrap.com/
+* Highlight-js:          https://highlightjs.org/
 
 ## Licence
 SAS is licenced under LGPL3.
