@@ -42,8 +42,8 @@
     .list-group-item .glyphicon {{
       margin-right: 5px;
     }}
-    span.diff_sub {{background-color: #FF888D;}}
-    span.diff_add {{background-color: #CCFFC7;}}
+    span.diff_sub {{background-color: #F0D6D6;border:1px solid #E8BFC6;}}
+    span.diff_add {{background-color: #D6EFCD;border:1px solid #CCE7B7;}}
     td {{
       font-family: monospace;
       padding: 3px;
@@ -72,6 +72,7 @@
   <body>
   	<div class="container-fluid">
   		<h1>{title} <span class='badge'>{n}</span></h1>
+  		<hr>
       <div class="row">
   		<div class="col-md-2">
   			<div class="list-group list-group-root well">
