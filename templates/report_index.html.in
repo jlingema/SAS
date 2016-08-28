@@ -58,6 +58,10 @@
       font-weight: bold;
 
     }}
+    td {{
+      max-width: 606px;
+      word-wrap:break-word;
+    }}
     .file-item {{
       cursor:pointer;
     }}
@@ -66,6 +70,9 @@
       font-family: sans-serif;
       font-size:13px;
       line-height:15pt;
+    }}
+    table {{
+      width:100%;
     }}
     </style>
   </head>
@@ -92,7 +99,16 @@
           .toggleClass('glyphicon-chevron-right')
           .toggleClass('glyphicon-chevron-down');
       }});
+      // remove active from all menu items
       $('.file-item').on('click', function() {{
+        $('.active').each(function(index) {
+          var data = $(this).attr('data-url');
+          if ($(this).hasClass('file-item')) {{}
+            $(this).removeClass('active');
+          }}
+        }});
+        // add active to this menu item
+        $(this).addClass('active');
         var txt_url = $(this).attr("data-url");
         $.ajax({{
             url : txt_url,
@@ -100,6 +116,7 @@
             success : function(data) {{
               $('#diff').html(data);
               $('td').each(function(index) {{
+                $(this).removeAttr("nowrap");
                 if ($(this).children().length == 0) {{ // if there is no diff, just highlight
                   var hi = hljs.highlight("C++", $(this).text());
                   $(this).html(hi.value);
