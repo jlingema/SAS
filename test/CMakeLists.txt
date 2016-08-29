@@ -23,7 +23,7 @@ if(EXAMPLE_CHECKERS)
                                          ":75:35:.*ConstCast.*"
                                          "13 warnings")
   add_sas_test(FILE "comment_checker_disabler.cpp" 
-               CHECKERS "sas.Example.Varname:sas.CodingConventions.General.NoUsingNamespaceInHeaders:sas.ThreadSafety.ConstCast"
+               CHECKERS "sas.Example.Varname" "sas.CodingConventions.General.NoUsingNamespaceInHeaders" "sas.ThreadSafety.ConstCast"
                PASSREGEX ${comment_checker_disabler_passregex})
 endif()
 add_sas_test(FILE "loop_convert.cpp" MODERNIZE MODERNIZE_OPTIONS "-risk=safe -loop-convert" PASSREGEX "2.*modernization")

@@ -80,8 +80,8 @@ endmacro(generate_registry_code)
 #-----------------------------------------------------------------------------------------------------------------------
 macro(add_sas_test)
    cmake_parse_arguments(ARG  "MODERNIZE"
-                              "FILE;CHECKERS;SA_CONFIGURATION_FILE;WORKING_DIR;PASSREGEX;FAILREGEX;LABELS"
-                              "MODERNIZE_OPTIONS" ${ARGN})
+                              "FILE;SA_CONFIGURATION_FILE;WORKING_DIR;PASSREGEX;FAILREGEX;LABELS"
+                              "MODERNIZE_OPTIONS;CHECKERS" ${ARGN})
    find_program(env_cmd xenv HINTS ${binary_paths})
 
    if (NOT ARG_FILE)
@@ -115,7 +115,7 @@ macro(add_sas_test)
 
 
    add_test(NAME "${TEST_NAME}"
-      COMMAND ${SAS_CMD} --checkers=${ARG_CHECKERS} ${MODERNIZE_ON} --modernize_options=${ARG_MODERNIZE_OPTIONS}
+      COMMAND ${SAS_CMD} --checkers ${ARG_CHECKERS} ${MODERNIZE_ON} --modernize_options=${ARG_MODERNIZE_OPTIONS}
       --sa_configuration=${CONFIGURATION_FILENAME} "${ARG_FILE}" "-c" "-std=c++11" "-o" "${CMAKE_BINARY_DIR}/{ARG_FILE}.o"
       WORKING_DIRECTORY "${WORKING_DIR}")
 
