@@ -24,6 +24,9 @@ if __name__ == "__main__":
     args, compiler_args = argparser.parse_known_args()
     command = [SA_CLANG_CPP] + compiler_args
 
+    if args.checkers == ['']:
+        args.checkers = []
+
     source_file_paths = []
     for argument in compiler_args:
         if common._IsSourceFile(argument):

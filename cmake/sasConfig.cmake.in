@@ -49,6 +49,12 @@ MACRO(enable_sas)
     add_definitions(--comparison_report_dir="${CMAKE_BINARY_DIR}/sasreport")
   endif(ARG_COMPARISON_REPORT_DIR)
 
+  if(NOT EXISTS ${sas_REPORT_DIR})
+    file(MAKE_DIRECTORY ${sas_REPORT_DIR})
+  endif()
+
+  file(WRITE ${sas_REPORT_DIR}/checker_warnings.txt "")
+
   if(ARG_MODERNIZE)
     message(STATUS "Clang modernize ON")
     add_definitions(--modernize)

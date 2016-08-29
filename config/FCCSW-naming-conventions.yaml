@@ -7,11 +7,11 @@ project:
 conventions:
     Function:
         name: "Function"
-        regex: "^[a-z][[:alnum:]]+"
+        regex: "^[a-z][a-zA-Z0-9+*=!<>&|~,\\%%\\/\\^\\-]+"
         description: "Function names must be in lowerCamelCase."
     Type:
         name: "Type"
-        regex: "^[A-Z][a-zA-Z0-9]+"
+        regex: "^[A-Z][a-zA-Z0-9]*"
         description: "Type names must be in UpperCamelCase."
     DataMember:
         name: "DataMember"
@@ -29,12 +29,3 @@ conventions:
         name: "Namespace"
         regex: "[a-z]+"
         description: "Namespace names may only contain lowercase letters."
-    NoClangType:
-        name: "NoClangType"
-        regex: "blah"
-        description: "This checker won't be written because it has no associated Clang type"
-    InvalidRegex:
-        clangType: "VarDecl"
-        name: "InvalidRegex"
-        regex: "["
-        description: "This checker won't be written because it is does not have a valid regular expression"
