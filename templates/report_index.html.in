@@ -58,10 +58,6 @@
       font-weight: bold;
 
     }}
-    td {{
-      max-width: 606px;
-      word-wrap:break-word;
-    }}
     .file-item {{
       cursor:pointer;
     }}

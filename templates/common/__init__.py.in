@@ -130,7 +130,7 @@ def _ComparisonReport(filename, clangFormatOutput):
     '''
     Compare the formatted version of the file with the existing one.
     '''
-    differ = difflib.HtmlDiff(wrapcolumn=120)
+    differ = difflib.HtmlDiff(wrapcolumn=80)
     diffLinesGen = _Compare(filename, clangFormatOutput, differ.make_table)
 
     return diffLinesGen
