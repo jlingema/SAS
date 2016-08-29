@@ -189,8 +189,6 @@ def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, m
         output_type = "code formatting rules violation"
 
     if comparison_report_dir != "":
-        if not os.path.exists(comparison_report_dir):
-            os.makedirs(comparison_report_dir)
         warning_file = os.path.join(comparison_report_dir, "checker_warnings.txt")
         with open(warning_file, "w+") as fobj:
             all_warnings = fobj.readlines() + checker_output.splitlines()
