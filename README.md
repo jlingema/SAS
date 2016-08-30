@@ -66,7 +66,7 @@ will generate an HTML index displaying the files containing coding convention vi
 # <a id="creditAndHistory"></a> Credit and History
 SAS originates from an effort within the CMS collaboration at CERN and quite some checkers were imported from CMSSW (http://cms-sw.github.io/). CMSSSW and its authors cannot be blamed by any mistake or bug present in SAS :-) The credit of single developers is preserved within the single source files. The first version of SAS was created by F. Bartek, D. Piparo and T. Hauth.
 
-Implementation of running SAS through CMake and FCCSW naming convention checkers was carried out by David Ho in a 2016 Summer Student project under supervision of Joschka Linegmann.
+Implementation of running SAS through CMake and FCCSW naming convention checkers was carried out by David Ho in a 2016 Summer Student project under supervision of Joschka Lingemann.
 
 The HTML summary page relies on bootstrap and hightlight js (see below for links).
 
