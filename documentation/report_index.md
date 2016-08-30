@@ -21,4 +21,6 @@ Clicking on a file on the sidebar will display a table in the centre of the inde
 
 In the left-hand column the table (original file), any warnings raised by the SAS checkers are displayed below the line they are triggered by.
 
+The report index only displays files that contain at least one coding convention violation reported by the SAS checks run. All folders that SAS checks are run on are displayed, even if they contain no errors.
+
 Currently (August 2016) the index page has only been tested in the Firefox browser.
