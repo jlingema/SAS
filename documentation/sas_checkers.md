@@ -17,9 +17,9 @@ The following checkers are included in SAS when shipped:
 Users may define their own project-specific checkers to customize SAS; these checkers will be run alongside other enabled SAS checks when the project source code is compiled.
 
 ### Generating Naming Convention Checkers from yaml
-Naming conventions checkers for common declarations may be generated programmatically from a yaml file using the Python script `sas_convention_generator.py` found in the scripts subfolder of the SAS install directory. The script is called as follows:
+Naming conventions checkers for common declarations may be generated programmatically from a yaml file using the Python script `sas_convention_generator` found in the scripts subfolder of the SAS install directory. The script is called as follows:
 ```
-python sas_convention_generator.py [path to yaml file] [SAS source directory]/src/CodingConventions/[project name]
+sas_convention_generator [path to yaml file] [SAS source directory]/src/CodingConventions/[project name]
 ```
 The checkers must be written to an empty subfolder in order for the checkers to be built correctly.
 The yaml file must have the following structure:

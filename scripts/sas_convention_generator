@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 '''
 This is an experimental prototype that generates naming convention checkers from a .yaml file.
 
