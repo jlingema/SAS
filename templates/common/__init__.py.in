@@ -28,6 +28,8 @@ import shutil
 import base64
 import re
 import fileinput
+import argparse
+
 
 _ClangFormatExeName="${CLANG_FORMAT_PATH}"
 _ClangModernizeExeName="${CLANG_MODERNIZE_PATH}"
@@ -35,6 +37,21 @@ _PluginLocation="${CMAKE_BINARY_DIR}/lib/libSas.so"
 _SourceFilesExtensions=[".cpp",".cxx",".c", ".cc",
                         ".h",".hpp",".icc",".hxx"]
 _SourceFilesExtensions+=map(str.upper,_SourceFilesExtensions)
+
+
+def GetArgParser():
+    argparser = argparse.ArgumentParser("wrapper around clang and clang++ for easier cmake integration", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("--check_format", action="store_true", help="flag whether to check the format with clang-format")
+    argparser.add_argument("--modernize", action="store_true", help="flag whether to run clang-modernize")
+    argparser.add_argument("--modernize_options", type=str, default="", help="string of clang-modernize options, separated by spaces")
+    argparser.add_argument("--checkers", type=str, default="", help="List of checkers", nargs="*")
+    argparser.add_argument("--sa_configuration", type=str, default="", help="SA_CONFIGURATION file")
+    argparser.add_argument("--disabled_checkers", type=str, default="", help="string of disabled checkers, separated by spaces", nargs="*")
+    argparser.add_argument("--comparison_report_dir", type=str, default="", help="Path to the directory in which to generate comparison reports")
+    argparser.add_argument("--ignore_dirs", type=str, default="", help="Directories to be omitted from SAS checks", nargs="*")
+    argparser.add_argument("--do_not_compile", action="store_true", help="flag whether to use the clang compiler")
+    argparser.add_argument("--file_list", type=str, help="flag whether to use the clang compiler", nargs="*")
+    return argparser
 
 def _Purple(text):
    '''

@@ -10,7 +10,7 @@ SA_CLANG = "${CLANG_PATH}"  # note: this is system specific and set in cmake
 if __name__ == "__main__":
     argparser = common.GetArgParser()
     args, compiler_args = argparser.parse_known_args()
-    command = [SA_CLANG] + compiler_args
+    command = [SA_CLANG_CPP] + compiler_args
 
     if args.checkers == ['']:
         args.checkers = []
