@@ -5,6 +5,11 @@ SAS uses the open-source Clang Abstract Syntax Tree to analyse the code in a pro
 
 Using SAS, continuous integration of static analysis tests can be easily achieved, helping projects to maintain safe, readable and consistent code.
 
+# Documentation
+* [Using SAS](documentation/using_sas.md)
+* [SAS Checkers](documentation/sas_checkers.md)
+* [The HTML Report Index](documentation/report_index.md)
+
 # Prerequisites
 The following software is required to run SAS:
 ## CMake
@@ -61,7 +66,7 @@ will run all enabled SAS checks on the project's source and header files. Once t
 ```
 make report_index
 ```
-will generate an HTML index displaying the files containing coding convention violations and detailing the errors found (note: report index has only been tested in Firefox browser).
+will generate an [HTML index](documentation/report_index.md) displaying the files containing coding convention violations and detailing the errors found (note: report index has only been tested in Firefox browser).
 
 # <a id="creditAndHistory"></a> Credit and History
 SAS originates from an effort within the CMS collaboration at CERN and quite some checkers were imported from CMSSW (http://cms-sw.github.io/). CMSSSW and its authors cannot be blamed by any mistake or bug present in SAS :-) The credit of single developers is preserved within the single source files. The first version of SAS was created by F. Bartek, D. Piparo and T. Hauth.
