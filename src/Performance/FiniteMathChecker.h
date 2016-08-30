@@ -9,7 +9,7 @@ namespace sas {
    namespace Performance {
       class FiniteMathTraits : public CommonCheckerTraits{
       public:
-         static constexpr const char* Name="sas.Performance.FiniteMathChecker";
+         static constexpr const char* Name="sas.Performance.FiniteMath";
          static constexpr const char* Description="Check usage of isnan/isinf as they do not work when fast-math is enabled.";
          static constexpr bool SkipMacros = false;
        };

@@ -1,0 +1,5 @@
+add_checker(ConstCastChecker.cpp)
+add_checker(ConstCastAwayChecker.cpp)
+add_checker(GlobalStaticChecker.cpp)
+add_checker(StaticLocalChecker.cpp)
+add_checker(MutableMemberChecker.cpp)

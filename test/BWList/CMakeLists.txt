@@ -1,0 +1,5 @@
+add_subdirectory(Class)
+add_subdirectory(FilePath)
+add_subdirectory(Misc)
+add_subdirectory(Namespace)
+add_subdirectory(Struct)

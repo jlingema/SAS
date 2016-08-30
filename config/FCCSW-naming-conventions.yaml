@@ -1,0 +1,31 @@
+---
+project:
+    name: "FCCSW"
+    author: "David Ho"
+    description: "Naming conventions for the FCCSW library"
+
+conventions:
+    Function:
+        name: "Function"
+        regex: "^[a-z][a-zA-Z0-9+*=!<>&|~,\\%%\\/\\^\\-]+"
+        description: "Function names must be in lowerCamelCase."
+    Type:
+        name: "Type"
+        regex: "^[A-Z][a-zA-Z0-9]*"
+        description: "Type names must be in UpperCamelCase."
+    DataMember:
+        name: "DataMember"
+        regex: "^m_[a-z][a-zA-Z0-9]+"
+        description: "Data member variable names must begin with 'm_' followed by a lowerCamelCase name."
+    Const:
+        name: "Const"
+        regex: "^k[A-Z][a-zA-Z0-9]+"
+        description: "Constant variable names must begin with 'k' followed by an UpperCamelCase name."
+    Enumerator:
+        name: "Enumerator"
+        regex: "^k[A-Z][a-zA-Z0-9]+"
+        description: "Enumerator variable names must begin with 'k' followed by an UpperCamelCase name."
+    Namespace:
+        name: "Namespace"
+        regex: "[a-z]+"
+        description: "Namespace names may only contain lowercase letters."

@@ -1,0 +1,109 @@
+#!/usr/bin/env python
+import os
+import datetime
+import argparse
+import base64
+import common
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Formatter summary creator", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("source_dir", type=str, help='path to the source directory')
+    parser.add_argument("report_dir", type=str, help='path to the report directory')
+    parser.add_argument("--ignore_dirs", type=str, help="paths to directories to be ignored", nargs="+")
+    args = parser.parse_args()
+
+    with open(os.path.join(args.report_dir, "checker_warnings.txt"), "r") as fobj:
+        checker_output = fobj.read()
+    warnings = common.ParseCheckerOutput(checker_output)
+
+    base_dir = os.path.abspath(args.source_dir.rstrip(os.sep))
+
+    # generate and write the report files
+    error_dict = {}
+    total_errors = 0
+
+    for html_file in os.listdir(args.report_dir):
+        if html_file == "index.html" or html_file == "checker_warnings.txt":
+            continue
+        path_hash = os.path.splitext(html_file)[0]
+        file_info = base64.b64decode(path_hash)
+        file_path, str_num_violations = os.path.split(file_info)
+        num_violations = int(str_num_violations)
+        if file_path in warnings:
+            common.InsertHtmlLines(os.path.join(args.report_dir, html_file), warnings[file_path])
+            for line in warnings[file_path]:
+                num_violations += len(warnings[file_path][line])
+        elif num_violations == 0:
+            os.remove(os.path.join(args.report_dir, html_file))
+            continue
+        directory, file_name = os.path.split(file_path)
+        if directory not in error_dict:
+            error_dict[directory] = {}
+        error_dict[directory][file_name] = {"html": html_file, "violations": num_violations}
+        total_errors += num_violations
+
+    substrings = []
+    visited = []
+    basedir = os.path.abspath(args.source_dir.rstrip(os.sep))
+    basedepth = len(basedir.split(os.sep))
+
+    for path, dirs, files in os.walk(basedir):
+        if ".git" in path or ".svn" in path:
+            continue
+        for directory in args.ignore_dirs:
+            if path.startswith(directory):
+                ignore = True
+            else:
+                ignore = False
+        if ignore:
+            continue
+
+        if path == basedir:
+            visited.append(path)
+            continue
+        current_string = ""
+
+        # close the divs as needed
+        prev_depth = len(visited[-1].split(os.sep))
+        depth = len(path.split(os.sep))
+        visited.append(path)
+        if depth <= prev_depth:
+            while depth <= prev_depth:
+                substrings.append("</div>")
+                prev_depth -= 1
+        # create link + div for next sub-group
+        current_string = "<a href='#{id}' class='list-group-item' data-toggle='collapse'><i class='glyphicon glyphicon-chevron-right'></i> {name} <span class='badge'>{n}</span></a>\n<div id='{id}' class='list-group collapse'>"
+
+        cntr = 0
+        for directory in error_dict:
+            if path in directory:
+                for file in error_dict[directory]:
+                    cntr += error_dict[directory][file]["violations"]
+        # append any files that contain formatting violations
+        if path in error_dict:
+            current_string = current_string.format(id=path.replace(os.sep, "_").replace(".", "")[1:], name=os.path.basename(path), n=cntr)
+            substrings.append(current_string)
+            for fname in error_dict[path]:
+                html_file = error_dict[path][fname]["html"]
+                num_violations = error_dict[path][fname]["violations"]
+                substrings.append("<a class='list-group-item file-item' data-url='{html_file}'>{title}<span class='badge'>{n}</span></a>".format(html_file=html_file, title=fname, n=num_violations))
+        else:  # otherwise count the total number of errors found in sub-directories
+            current_string = current_string.format(id=path.replace(os.sep, "_").replace(".", "")[1:], name=os.path.basename(path), n=cntr)
+            substrings.append(current_string)
+
+    while depth > basedepth:
+        substrings.append("</div>")
+        depth -= 1
+
+    # populate template from ./html/
+    footer = ""
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../html/report_footer.html"), "r") as fobj:
+        footer = fobj.read()
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../html/report_index.html.in"), "r") as fobj:
+        report_template = fobj.read()
+    with open(os.path.join(args.report_dir, "index.html"), "w") as fobj:
+        fobj.write(report_template.format(links="\n".join(substrings), title=os.path.basename(base_dir), n=total_errors))
+        fobj.write(footer)
+    print("--------------------------------------------------------------------------------")
+    print("Check Complete\nNumber of errors: {total_errors}\nReport index at: {index_path}".format(total_errors=total_errors, index_path=os.path.abspath(os.path.join(args.report_dir, "index.html"))))
+    print("--------------------------------------------------------------------------------")

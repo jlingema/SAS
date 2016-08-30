@@ -1,0 +1,3 @@
+if (!std::regex_match(nameString, correctRegex)) {
+    Report(D, reportDescription, BR);
+  }

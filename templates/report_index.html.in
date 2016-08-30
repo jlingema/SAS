@@ -1,0 +1,143 @@
+<html>
+  <head>
+    <title>{title}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+    integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+    .just-padding {{
+      padding: 15px;
+    }}
+
+    .list-group.list-group-root {{
+      padding: 0;
+      overflow: hidden;
+    }}
+
+    .list-group.list-group-root .list-group {{
+      margin-bottom: 0;
+    }}
+
+    .list-group.list-group-root .list-group-item {{
+      border-radius: 0;
+      border-width: 1px 0 0 0;
+    }}
+
+    .list-group.list-group-root > .list-group-item:first-child {{
+      border-top-width: 0;
+    }}
+
+    .list-group.list-group-root > .list-group > .list-group-item {{
+      padding-left: 30px;
+    }}
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group-item {{
+      padding-left: 45px;
+    }}
+    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group-item {{
+      padding-left: 60px;
+    }}
+    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group > .list-group-item {{
+      padding-left: 75px;
+    }}
+    .list-group-item .glyphicon {{
+      margin-right: 5px;
+    }}
+    span.diff_sub {{background-color: #F0D6D6;border:1px solid #E8BFC6;}}
+    span.diff_add {{background-color: #D6EFCD;border:1px solid #CCE7B7;}}
+    td {{
+      font-family: monospace;
+      padding: 3px;
+      border:0;
+    }}
+    colgroup {{
+      border: 1px dashed #CCC;
+    }}
+    th {{
+      padding: 8px;
+      border-bottom: 2px solid #ccc;
+      font-weight: bold;
+
+    }}
+    .file-item {{
+      cursor:pointer;
+    }}
+    div.alert {{
+      width: 600px;
+      font-family: sans-serif;
+      font-size:13px;
+      line-height:15pt;
+    }}
+    table {{
+      width:100%;
+    }}
+    </style>
+  </head>
+  <body>
+  	<div class="container-fluid">
+  		<h1>{title} <span class='badge'>{n}</span></h1>
+  		<hr>
+      <div class="row">
+  		<div class="col-md-2">
+  			<div class="list-group list-group-root well">
+          {links}
+        </div>
+  		</div>
+      <div class="col-md-10" id="diff">
+      </div>
+      </div>
+  	</div>
+    <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+        <script type="text/javascript">
+    $(function() {{
+      $('.list-group-item').on('click', function() {{
+        $('.glyphicon', this)
+          .toggleClass('glyphicon-chevron-right')
+          .toggleClass('glyphicon-chevron-down');
+      }});
+      // remove active from all menu items
+      $('.file-item').on('click', function() {{
+        $('.active').each(function(index) {
+          var data = $(this).attr('data-url');
+          if ($(this).hasClass('file-item')) {{}
+            $(this).removeClass('active');
+          }}
+        }});
+        // add active to this menu item
+        $(this).addClass('active');
+        var txt_url = $(this).attr("data-url");
+        $.ajax({{
+            url : txt_url,
+            dataType : "text",
+            success : function(data) {{
+              $('#diff').html(data);
+              $('td').each(function(index) {{
+                $(this).removeAttr("nowrap");
+                if ($(this).children().length == 0) {{ // if there is no diff, just highlight
+                  var hi = hljs.highlight("C++", $(this).text());
+                  $(this).html(hi.value);
+                }} else {{
+                  var content = "";
+                  $(this).contents().each(function(index) {{
+                    if ($(this).is("span")) {{ // the diff highlights are in spans so handle those
+                      var hi = hljs.highlight("C++", $(this).text());
+                      content += "<span class='" +$(this).attr('class') + "'>" + hi.value;
+                      content += "</span>"
+                    }} else if (!$(this).is("div")) {{ // don't highlight checker warnings
+                      var hi = hljs.highlight("C++", $(this).text());
+                      content += hi.value;
+                    }}
+                  }});
+                  if (content != "") {{
+                    $(this).html(content);
+                  }}
+                }}
+              }});
+            }}
+          }}
+        );
+      }});
+
+    }});
+    </script>
+  </body>

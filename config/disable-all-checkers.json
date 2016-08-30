@@ -1,0 +1,5 @@
+{"CONFIGURATION":[
+  { "FILE_PATH": ["*"],
+    "CHECKER": ["sas"],
+    "B/W": false}  ]
+}

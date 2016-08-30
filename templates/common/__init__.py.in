@@ -1,0 +1,299 @@
+'''
+EXPERIMENTAL: this is a demonstrator and not the final product!
+This module provides the common pieces for scripts wrapping around clang(++)
+invocations which allows to invoke static analysis if certain environment
+variables are set.
+Tested with ROOT
+
+In order to steer SA within your setup (your laptop, Jenknins or whatever CI
+system) the following variables must be defined:
+o SA_CHECKERS: list of checkers names separated by a ":", a la PATH.
+  Example: SA_CHECKERS="core.uninitialized:cplusplus"
+o SA_CLANG_CPP: path to clang++. This is the compiler to be called to perform
+  static analysis.
+  Example: SA_CLANG_CPP=/afs/cern.ch/sw/blaBlaBla/clang35/blaBlaBla/bin/clang++
+o SA_PLUGIN: plugin library of custom checkers, for example built with SAS.
+  https://indico.cern.ch/event/267747/contribution/2/1/material/slides/0.pdf
+  Example: SA_PLUGIN="/path/to/my/libSas.so"
+o SA_FORMATTING: if this is defined, formatting rules are checked
+'''
+
+from __future__ import print_function
+
+import subprocess
+import difflib
+import sys
+import os
+import shutil
+import base64
+import re
+import fileinput
+import argparse
+
+
+_ClangFormatExeName="${CLANG_FORMAT_PATH}"
+_ClangModernizeExeName="${CLANG_MODERNIZE_PATH}"
+_PluginLocation="${CMAKE_BINARY_DIR}/lib/libSas.so"
+_SourceFilesExtensions=[".cpp",".cxx",".c", ".cc",
+                        ".h",".hpp",".icc",".hxx"]
+_SourceFilesExtensions+=map(str.upper,_SourceFilesExtensions)
+
+
+def GetArgParser():
+    argparser = argparse.ArgumentParser("wrapper around clang and clang++ for easier cmake integration", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    argparser.add_argument("--check_format", action="store_true", help="flag whether to check the format with clang-format")
+    argparser.add_argument("--modernize", action="store_true", help="flag whether to run clang-modernize")
+    argparser.add_argument("--modernize_options", type=str, default="", help="string of clang-modernize options, separated by spaces")
+    argparser.add_argument("--checkers", type=str, default="", help="List of checkers", nargs="*")
+    argparser.add_argument("--sa_configuration", type=str, default="", help="SA_CONFIGURATION file")
+    argparser.add_argument("--disabled_checkers", type=str, default="", help="string of disabled checkers, separated by spaces", nargs="*")
+    argparser.add_argument("--comparison_report_dir", type=str, default="", help="Path to the directory in which to generate comparison reports")
+    argparser.add_argument("--ignore_dirs", type=str, default="", help="Directories to be omitted from SAS checks", nargs="*")
+    argparser.add_argument("--do_not_compile", action="store_true", help="flag whether to use the clang compiler")
+    argparser.add_argument("--file_list", type=str, help="flag whether to use the clang compiler", nargs="*")
+    return argparser
+
+def _Purple(text):
+   '''
+   Make this text violet
+   '''
+   return "\033[35m%s \033[m" %text
+
+def _Bold(text):
+   '''
+   Guess...
+   '''
+   return "\033[1m%s \033[m" %text
+
+
+def _WrapClangCommand(command, SA_CLANG_COMPILER, checkers=[]):
+   '''
+   Wrap the compilation command and force clang to run static analysis.
+   Invoke SA and compilation
+   '''
+   SA_CHECKERS = "SA_CHECKERS"
+   SA_PLUGIN = "SA_PLUGIN"
+   BASE_XCLANG_ARGS = ["-Xclang", "-analyze", "-Xclang", "-analyzer-output=text"]
+
+   env = os.environ
+   if SA_CHECKERS in env:
+     sa_checkersString = env[SA_CHECKERS]
+     sa_checkers = filter(lambda name: name!='', sa_checkersString.split(":"))
+   else:
+      sa_checkers = checkers
+   compilerArguments = command[1:]
+   sa_checker_output = ""
+
+   if len(sa_checkers)>0 and "-c" in compilerArguments and not "-shared" in compilerArguments:
+      sa_plugin = env[SA_PLUGIN] if SA_PLUGIN in env else _PluginLocation
+      # Accumulate checkers names
+      checkers_args=[]
+      for checkerName in sa_checkers:
+         checkers_args += ["-Xclang", "-analyzer-checker=%s" %checkerName]
+
+      # Load the plugin if one has been specified
+      plugin_args=[]
+      if sa_plugin != "":
+         plugin_args += ["-Xclang", "-load", "-Xclang", "%s" %sa_plugin]
+
+
+      outputToNull = ["-o","/dev/null"]
+
+      # Recompose the SA command
+      saCommand = [SA_CLANG_COMPILER] + \
+                  BASE_XCLANG_ARGS + \
+                  checkers_args + \
+                  plugin_args + \
+                  compilerArguments + \
+                  outputToNull
+
+      #print ("note:", "Invoking SA with command %s " %(" ".join(saCommand)), file=sys.stdout)
+      try:
+         sa_checker_output = subprocess.check_output(saCommand, stderr=subprocess.STDOUT)
+         print(sa_checker_output)
+      except subprocess.CalledProcessError as e:
+        print ("exception occured with SA checkers:", e.output)
+   return subprocess.call(command), sa_checker_output
+
+def _Compare(filename, clangFormatOutput, difffunction):
+    fileContentLines = open(filename,"r").read().splitlines()
+    clangFormatOutputLines = clangFormatOutput.splitlines()
+
+    diffLinesGen = difffunction(fileContentLines,
+                                        clangFormatOutputLines,
+                                        'Original File (%s)' %filename,
+                                        'Formatted File')
+    return diffLinesGen
+
+def _CompareFiles(filename, clangFormatOutput, outputType):
+    '''
+    Compare the formatted version of the file with the existing one.
+    '''
+    diffLinesGen = _Compare(filename, clangFormatOutput, difflib.context_diff)
+    diffLines = list(diffLinesGen)
+    nViolations = int ( sum(0.5 for line in diffLines if line[0] == '!') )
+
+    # Here we should put some mechanism to display violations as warnings to
+    # integrate this script in CI systems, think to the jenkins warning parsers.
+    # In addition if nViolations is greater than some number we could just print
+    # an error.
+    if nViolations >0 :
+        plural = "" if nViolations == 1 else "s"
+        print (_Bold(_Purple("warning:")), _Bold('%s %s%s detected.' %(nViolations,outputType,plural)), file=sys.stderr)
+        #print ("\n".join(diffLines), file=sys.stderr)
+        return nViolations
+    return nViolations
+
+def _ComparisonReport(filename, clangFormatOutput):
+    '''
+    Compare the formatted version of the file with the existing one.
+    '''
+    differ = difflib.HtmlDiff(wrapcolumn=80)
+    diffLinesGen = _Compare(filename, clangFormatOutput, differ.make_table)
+
+    return diffLinesGen
+
+def CheckFormattingRules(filename):
+    '''
+    Check the formatting rules
+    '''
+    clangFormatOutput = _RunClangTools(filename, format_on=True)
+    nViolations = _CompareFiles(filename, clangFormatOutput, 'code formatting rules violation')
+    return clangFormatOutput, nViolations
+
+def ClangModernize(options, filename):
+    '''
+    Run clang-modernize on sources
+    '''
+    clangModernizeOutput = _RunClangTools(filename, modernize_on=True, modernize_options=options)
+    nViolations = _CompareFiles(filename, clangModernizeOutput, 'available clang-modernize transformation')
+    return clangModernizeOutput, nViolations
+
+def _IsSourceFile(filename):
+    '''
+    Return true in case this filename is a source
+    '''
+    fileExtension = os.path.splitext(filename)[1]
+    return fileExtension in _SourceFilesExtensions
+
+def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, modernize_on=False, modernize_options="", sa_checkers=[], comparison_report_dir=""):
+    '''
+    Perform static analysis and check of formatting rules if requested
+    '''
+    sources = filter(_IsSourceFile, command)
+    includes = filter(lambda option: option.startswith("-I"), command)
+    if "SA_FORMATTING" in os.environ:
+        format_on = True
+    if "SA_MODERNIZE" in os.environ:
+        modernize_on = True
+        modernize_options += os.environ['SA_MODERNIZE']
+    if modernize_on:
+        modernize_options = modernize_options + " -- " + " ".join(includes) + " -c -std=c++11"
+
+    if do_not_compile:
+        compilation_ret = 0
+        checker_output = ""
+        modernize_on = False
+    else:
+        compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
+
+    output_type = ""
+    if modernize_on and format_on:
+        output_type = "formatting/modernization change"
+    elif modernize_on:
+        output_type = "clang modernization transformation"
+    elif format_on:
+        output_type = "code formatting rules violation"
+
+    if comparison_report_dir != "":
+        warning_file = os.path.join(comparison_report_dir, "checker_warnings.txt")
+        with open(warning_file, "w+") as fobj:
+            all_warnings = fobj.readlines() + checker_output.splitlines()
+            unique_warnings = set(all_warnings)
+            fobj.write("\n".join(unique_warnings))
+
+    for source in sources:
+        result = _RunClangTools(source, modernize_on, format_on, modernize_options, "")
+        num_violations = _CompareFiles(source, result, output_type)
+        html_diff_map = _ComparisonReport(source, result)
+        if comparison_report_dir != "":
+            html_info = os.path.join(source, str(num_violations))
+            path_hash = base64.b64encode(html_info)
+            with open(os.path.join(comparison_report_dir, path_hash + ".html"), "w") as fobj:
+                fobj.write(html_diff_map)
+
+    return compilation_ret
+
+
+def CheckFormat(command, sa_clang_compiler):
+    '''
+    Perform static analysis and check of formatting rules if requested
+    '''
+    returnMap = {}
+    sources = filter(_IsSourceFile, command)
+    if os.environ.has_key("SA_FORMATTING"):
+       for source in sources:
+         clangFormatOutput = _RunClangTools(source, format_on=True)
+         difflines = _ComparisonReport(source, clangFormatOutput)
+         returnMap[source] = difflines
+    returnVal, output = _WrapClangCommand(command, sa_clang_compiler)
+    return returnVal, returnMap, output
+
+
+def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_options="", format_options=""):
+    '''
+    Run either or both of modernize and Clang Format and capture the output
+    '''
+    basename=os.path.basename(filename)
+    tempname=basename[:basename.rfind('.')] + '.temp' + basename[basename.rfind('.'):]
+    dirname=os.path.dirname(filename)
+    tempfile=os.path.join(dirname, tempname)
+
+    shutil.copyfile(filename, tempfile)
+    modernize_options_list = modernize_options.split()
+    format_options_list = format_options.split()
+
+    if modernize_on:
+        process = subprocess.Popen([_ClangModernizeExeName] + [tempfile] + modernize_options_list, stdout = subprocess.PIPE)
+        process.communicate()[0]
+
+    if format_on:
+        if "-i" not in format_options_list:
+            format_options_list.insert(0, "-i")
+        process = subprocess.Popen([_ClangFormatExeName] + [tempfile] + format_options_list, stdout = subprocess.PIPE)
+        process.communicate()[0]
+
+    with open(tempfile, "r") as fobj:
+        result = fobj.read()
+    os.remove(tempfile)
+
+    return result
+
+def ParseCheckerOutput(checker_output):
+    warnings = {}
+    output_lines = checker_output.split("\n")
+    warning_line_regex = re.compile(":([0-9]+):([0-9]+): warning")
+    for line in output_lines:
+        match = warning_line_regex.search(line)
+        if match:
+            file_path = line[:match.start()]
+            if file_path not in warnings:
+                warnings[file_path] = {}
+            warning_text = line[match.end() + 1:]
+            line_number = match.group(1)
+            if line_number in warnings[file_path]:
+                warnings[file_path][line_number].append(warning_text)
+            else:
+                warnings[file_path][line_number] = [warning_text]
+    return(warnings)
+
+def InsertHtmlLines(html_filename, warnings):
+    html_tr = '<tr><td></td><td></td><td><div class="alert alert-warning" role="alert">{warning}</div></td><td></td><td></td><td nowrap="nowrap"></td></tr>'
+    for line in fileinput.input(os.path.abspath(html_filename), inplace=True):
+        print(line),
+        line_regex = re.compile("from0_([0-9]+)")
+        match = line_regex.search(line)
+        if match:
+            if match.group(1) in warnings:
+                for warning in warnings[match.group(1)]:
+                    print(html_tr.format(warning=warning)),

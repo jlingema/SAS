@@ -55,7 +55,6 @@ void BlackWhiteListCheckerDisabler::WalkDeclContext(const clang::DeclContext *DC
 bool BlackWhiteListCheckerDisabler::PathWildCardMatch(jsonxx::Array &pathWildCardList,
                                                       const std::string &matchString) const {
    if(matchString.empty()) return true;
-   std::cout<<"PATHSIZE "<<pathWildCardList.size()<<std::endl;
    if(pathWildCardList.size() != 0)
    {
       for(std::size_t listIndex = 0;
@@ -118,9 +117,10 @@ bool BlackWhiteListCheckerDisabler::CheckBlackWhiteListConfiguration() const{
    // scan if SA_CONFIGURATION environment variable is set
    std::string sas_configuration_path;
    if(const char* env_p = std::getenv("SA_CONFIGURATION"))
-   {
+   {  
       sas_configuration_path = env_p;
    }
+
    // if SA_CONFIGURATION is not set we will scan the .sas.json under working directory
    // if we cannot find configuration json, then we fire the checker by default
    else sas_configuration_path = ".sas.json";
@@ -144,7 +144,6 @@ bool BlackWhiteListCheckerDisabler::CheckBlackWhiteListConfiguration() const{
    {
       jsonxx::Object configuration = configuration_list.get<jsonxx::Object>(i);
       jsonxx::Array filepathList, namespaceList, structList, classList, checkerList;
-
       if(configuration.has<jsonxx::Array>("FILE_PATH"))
          filepathList = configuration.get<jsonxx::Array>("FILE_PATH");
       if(configuration.has<jsonxx::Array>("NAMESPACE"))
@@ -155,11 +154,11 @@ bool BlackWhiteListCheckerDisabler::CheckBlackWhiteListConfiguration() const{
          classList = configuration.get<jsonxx::Array>("CLASS");
       if(configuration.has<jsonxx::Array>("CHECKER"))
          checkerList = configuration.get<jsonxx::Array>("CHECKER");
+
       bool path_match=PathWildCardMatch(filepathList, relPath.str()),
          namespace_match=RegexMatch(namespaceList, namespace_name),
          struct_match=RegexMatch(structList, struct_name),
          class_match=RegexMatch(classList, class_name);
-
       bool match = path_match && namespace_match && struct_match && class_match;
       //if all path/namespace/class/struct are matched, we then check the b/w and decide whether we fire
       if (match)
