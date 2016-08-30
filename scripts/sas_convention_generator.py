@@ -86,7 +86,6 @@ class ConventionReader(object):
                 else:
                     continue
                 if not object_name in self.identifiers.keys():
-                    print("No identifier template found for '{name}'; using default template".format(name=name))
                     self.identifiers[object_name] = self.default_template
 
 
