@@ -1,106 +1,76 @@
-# SAS Static Analysis Suite
-Static analysis of your code and check of coding conventions: easier than ever
-```
-SA_PLUGIN=$SASBUILDDIR/lib/libSas.so SA_FORMATTING=1 SA_CHECKERS="sas.threadsafety" clang++ ... -c myFile.cpp ....
-```
-* Easy to build
-* Easy to integrate in your CI system
-* Easy to extend
-* Free and open-source
+# SAS
+SAS (Static Analysis Suite) is a tool for finding coding convention violations in C++ code. SAS is run in parallel with compilation and as such can run powerful and specific checks: currently included are checkers for code formatting, naming conventions, thread safety, performance and usage of modern language constructs. Users may use and adapt existing checkers, or write new ones specific to their project.
 
-## Introduction
-The Static Analysis Suite (SAS) allows to easily create checkers for static analysis with clang. This is achieved creating a plugin (dynamic shared object library), loadable by the compiler. SAS is shipped with a set of custom checkers and allows easy extension with new checkers. See [Credit and History](#creditAndHistory)
+SAS uses the open-source Clang Abstract Syntax Tree to analyse the code in a project, allowing checks on specific language constructs to be carried out. Implemented through the CMake build automisation tool, SAS replaces the C++ compiler and runs a number of 'checkers', which can be general or project-specific, on each file. Any errors found are written to an html file that is displayed in the report index.
 
-## How to build and use the SAS plugin
-Clone the SAS repository and then:
+Using SAS, continuous integration of static analysis tests can be easily achieved, helping projects to maintain safe, readable and consistent code.
+
+# Prerequisites
+The following software is required to run SAS:
+## CMake
+Version 2.8 or newer.
+## Clang/LLVM
+Clang version 3.5 or newer.
+## Python
+Version 2.7 or newer. In order to generate custom checkers from yaml files, the `yaml` module must be installed.
+
+# Quick Start Guide
+## Preparing the Environment
+Run the following commands to set the required environment variables:
 ```
-export SASBUILDDIR=SASbuild
+source /afs/cern.ch/exp/fcc/sw/0.7/init_fcc_stack.sh
+source /afs/cern.ch/sw/lcg/external/llvm/3.6/x86_64-slc6/setup.sh
+```
+## <a id="buildingAndInstalling"></a> Building and Installing SAS
+Clone the SAS repository and run the following:
+```
+export SASBUILDDIR=[name for build directory]
+export SASINSTALLDIR=[name for install directory]
+mkdir $SASINSTALLDIR
 mkdir $SASBUILDDIR;cd $SASBUILDDIR
-cmake ../SAS
-make -j 4
+cmake -DCMAKE_INSTALL_PREFIX="../$SASINSTALLDIR" ../SAS
+make install
 ```
+replacing the square-bracketed terms with approprate names.
 
-Having performed these steps, you should have the library ready in
-"$SASBUILDDIR/lib/libSas.so".
+This installs SAS with the default checkers (general coding conventions, thread-safety and performance) enabled.
 
-There are two ways of using the plugin: directly with clang and in combination with scan-build
+The following CMake options can be used to enable further checkers:
+* `-DFCCSW_CHECKERS=ON`: enable FCCSW naming convention checkers (see [FCCSW documentation](https://github.com/jlingema/FCCSW/blob/master/doc/CppCodingStyleGuidelines.md))
+* `-DROOT_CHECKERS=ON`: enable ROOT naming convention checkers (see [ROOT/Taligent documentation](https://root.cern.ch/TaligentDocs/TaligentOnline/DocumentRoot/1.0/Docs/books/WM/WM_63.html))
+* `-DEXAMPLE_CHECKERS=ON`: enable the example checker (checks that variable names begin with a capital letter)
 
-### With Clang
-You can invoke the static analyzer with your own checkers with this command:
-```
-clang++ <all the options to compile the unit>  -Xclang -analyze -Xclang -analyzer-output=text -Xclang -load -Xclang $SASBUILDDIR/lib/libSas.so -Xclang -analyzer-checker=MyAnalyzer1 -Xclang -analyzer-checker=MyAnalyzer2 ... -analyzer-checker=MyAnalyzerN
-```
+##<a id="usingSAS"></a>Using SAS
+For more detailed SAS options and alternative ways to run SAS, see the [Using SAS](documentation/using_sas.md) section of the documentation.
 
-### Scan-build
-To invoke scan-build prepended to make, a possible command could be:
+The simplest way to run SAS is through CMake. Within the project directory, run the command
 ```
-scan-build -load-plugin $BUILD_DIR/lib/libSas.so -enable-checker sas \
-           -disable-checker sas.example -disable-checker sas.optional \
-           -o MyReportDir make
+export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:[path to SAS install directory]
 ```
+to set the cmake prefix path, and then add the lines
+```
+find_package(sas)
+enable_sas()
+```
+to the project's `CMakeLists.txt` after the `project()` command to enable sas. This replaces the C++ compiler with SAS, so executing
+```
+cmake [path to project source directory]
+make
+```
+will run all enabled SAS checks on the project's source and header files. Once this is complete, the command
+```
+make report_index
+```
+will generate an HTML index displaying the files containing coding convention violations and detailing the errors found (note: report index has only been tested in Firefox browser).
 
-## Combining static analysis and formatting rules checking
-Many projects often require to impose coding conventions. This can be achieved using SAS. Rules that require an AST analysis can be implemented as clang checkers while rules relative to formatting can be checked with `clang-format`. SAS takes care of the gory details and offers some script to ease this job.
-1. `sasFormattingChecker.py`: this script allows to check the formatting of a file and emit warning is formatting rules are violated
-2. `clang++` and `clang`: these two scripts are meant to be a wrapper around the compiler
-
-### Steering static analysis with environment variables: the clang and clang++ scripts
-This is a bit experimental at the moment, but basically all you need to check your code are these two scripts. You can use them like this.
-Just forward the commands to `clang(++)`
-```
-clang++ ... -c myFile.cpp ....
-```
-Forward the commands to the compiler and check formatting
-```
-SA_FORMATTING=1 clang++ ... -c myFile.cpp ....
-```
-Forward the commands to the compiler, check formatting and select some checkers
-```
-SA_FORMATTING=1 SA_CHECKERS="core.uninitialized:alpha" clang++ ... -c myFile.cpp ....
-```
-Forward the commands to the compiler, check formatting, load a plugin (why not the SAS one?) and select some checkers
-```
-SA_PLUGIN=$SASBUILDDIR/lib/libSas.so SA_FORMATTING=1 SA_CHECKERS="sas.threadsafety" clang++ ... -c myFile.cpp ....
-```
-
-## Requirements
-To start using SAS, you need cmake (at least version 2.6), clang, llvm and their development files. The required version for Clang is 3.5.
-
-## Details about the implementation
-You can find the source code of the existing SAS checkers in the files *src/*Checker.**. Feel free to inspect the source code to get basic understanding of how checkers are implemented. Note that `VarnameChecker` and `GlobalAccInCtorChecker` are expected to have more comprehensive documentation. Please consult the [Checker Developer Manual] for more information about checker development.
-Useful links:
-* Checker Developer Manual: http://clang-analyzer.llvm.org/checker_dev_manual.html
-* Clang API Documentation:  http://clang.llvm.org/doxygen/
-
-## Registration in SAS plugin
-Once you've created a new checker class, you need to register it in the SAS library. To do that, edit the files *src/ClangSasCheckerPluginRegister.cpp* and *CMakeLists.txt*. The comments in the files explain the steps to be taken in order to add a checker to the library.
-After this step is performed, configure SAS build again with `cmake` to propagate the changes in the build files and re-build SAS.
-
-## How to disable a checker from within the source code (experimental)
-A checker disabling mechanism is provided for suppressing false positives.
-To disable a checker on a particular line in target source code, add a comment on a preceding line that starts with "//" (two slashes) and contains the following text:
-```
-sas[disable_checker : "MyChecker"]
-```
-(including the double quotes) where MyChecker is a full name of the checker to be disabled.
-
-Example (source code extract):
-```
-// sas[disable_checker : "sas.example.Varname"]
-int varLowercase; // not bug (Varname): lowercase, but disabled by comment
-```
-
-For more examples see the file *test/checkerdisabler.cpp*.
-
-## How to allow a checker to be disabled
-Consult the file *src/CheckerDisabler.h* for instructions on how to disable your checker.
-
-## <a id="creditAndHistory"></a> Credit and History
+# <a id="creditAndHistory"></a> Credit and History
 SAS originates from an effort within the CMS collaboration at CERN and quite some checkers were imported from CMSSW (http://cms-sw.github.io/). CMSSSW and its authors cannot be blamed by any mistake or bug present in SAS :-) The credit of single developers is preserved within the single source files. The first version of SAS was created by F. Bartek, D. Piparo and T. Hauth.
+
+Implementation of running SAS through CMake and FCCSW naming convention checkers was carried out by David Ho in a 2016 Summer Student project under supervision of Joschka Linegmann.
 
 The HTML summary page relies on bootstrap and hightlight js (see below for links).
 
-## Useful Links:
+# Useful Links:
 * LLVM:                  http://llvm.org
 * Clang:                 http://clang.llvm.org
 * Clang Static Analyzer: http://clang-analyzer.llvm.org
@@ -109,5 +79,5 @@ The HTML summary page relies on bootstrap and hightlight js (see below for links
 * Bootstrap:             http://getbootstrap.com/
 * Highlight-js:          https://highlightjs.org/
 
-## Licence
+# Licence
 SAS is licenced under LGPL3.
