@@ -27,7 +27,7 @@ The yaml file must have the following structure:
 ---
 project:
   name: "[project name]"
-  author: "[project author]"
+  author: "[checker author]"
 conventions:
   [object name]:
     name: "[name for checker]"
@@ -61,3 +61,5 @@ for each checker written must be present in the directory in which the checkers 
 add_subdirectory([checker directory name])
 ```
 must be added to the parent directory's `CMakeLists.txt` in order for the checkers to be compiled correctly when SAS is built.
+
+See [src/CodingConventions/FCCSW/CMakeLists.txt](../src/CodingConventions/FCCSW/CMakeLists.txt) and [src/CMakeLists.txt](../src/CMakeLists.txt) for examples.

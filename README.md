@@ -1,9 +1,9 @@
 # SAS
-SAS (Static Analysis Suite) is a tool for finding coding convention violations in C++ code. SAS is run in parallel with compilation and as such can run powerful and specific checks: currently included are checkers for code formatting, naming conventions, thread safety, performance and usage of modern language constructs. Users may use and adapt existing checkers, or write new ones specific to their project.
+SAS (Static Analysis Suite) is a powerful tool for running static analysis on C++ code. SAS runs in parallel with compilation and as such can run useful and fine-grained checks; currently included are checks for code formatting, naming conventions, thread safety, performance and usage of modern language constructs. SAS is easy to use and supports user-written custom checkers.
 
-SAS uses the open-source Clang Abstract Syntax Tree to analyse the code in a project, allowing checks on specific language constructs to be carried out. Implemented through the CMake build automisation tool, SAS replaces the C++ compiler and runs a number of [checkers](documentation/sas_checkers.md), which can be general or project-specific, on each file. Any errors found are written to an html file that is displayed in the report index.
+SAS wraps the Clang compiler and runs a number of [checkers](documentation/sas_checkers.md), which may be general or project-specific. Any errors found are written to an html file that is displayed in the report index.
 
-Using SAS, continuous integration of static analysis tests can be easily achieved, helping projects to maintain safe, readable and consistent code.
+Using SAS in continuous integration will help projects to maintain safe, readable and consistent code.
 
 # Documentation
 * [Using SAS](documentation/using_sas.md)
@@ -12,19 +12,16 @@ Using SAS, continuous integration of static analysis tests can be easily achieve
 
 # Prerequisites
 The following software is required to run SAS:
-## CMake
-Version 2.8 or newer.
-## Clang/LLVM
-Clang version 3.5 or newer.
-## Python
-Version 2.7 or newer. In order to generate custom checkers from yaml files, the `yaml` module must be installed.
+* CMake version 2.8 or newer.
+* Clang/LLVM version 3.5 or newer.
+* Python 2.7 or newer. In order to generate custom checkers from yaml files, the `yaml` module must be installed.
 
 # Quick Start Guide
 ## Preparing the Environment
-Run the following commands to set the required environment variables:
+On lxplus or any slc6 system at CERN, run the following commands to setup the required environment:
 ```
-source /afs/cern.ch/exp/fcc/sw/0.7/init_fcc_stack.sh
 source /afs/cern.ch/sw/lcg/external/llvm/3.6/x86_64-slc6/setup.sh
+source /afs/cern.ch/sw/lcg/views/LCG_85/x86_64-slc6-gcc49-opt/setup.sh
 ```
 ## <a id="buildingAndInstalling"></a> Building and Installing SAS
 Clone the SAS repository and run the following:
@@ -50,14 +47,14 @@ For more detailed SAS options and alternative ways to run SAS, see the [Using SA
 
 The simplest way to run SAS is through CMake. Within the project directory, run the command
 ```
-export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:[path to SAS install directory]
+export CMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH:$SASINSTALLDIR
 ```
 to set the cmake prefix path, and then add the lines
 ```
 find_package(sas)
 enable_sas()
 ```
-to the project's `CMakeLists.txt` after the `project()` command to enable sas. This replaces the C++ compiler with SAS, so executing
+to the project's `CMakeLists.txt` after the `project()` command to enable sas. This replaces the C++ compiler with the SAS Clang wrapper, so executing
 ```
 cmake [path to project source directory]
 make

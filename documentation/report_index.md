@@ -1,5 +1,5 @@
 # HTML Report Index
-The report index displays the errors found in each file SAS checks are run on. An example of an HTML report index may be found [here](http://fccsw.web.cern.ch/fccsw/static_checks/FCCSW/index_short.html).
+The report index displays the errors found in each file SAS checks are run on. An example of an HTML report index may be found [here](http://fccsw.web.cern.ch/fccsw/static_checks/FCCSW/index.html).
 
 ## Generating the Report Index
 Once SAS has been run on a project using CMake, the outputs of the static analysis checks are written to files in the folder specified in the `COMPARISON_REPORT_DIR` argument of the `enable_sas()` CMake macro (see the [Using SAS](usingSAS.md) of SAS documentation for more details). From the project build directory, the command
@@ -22,5 +22,3 @@ Clicking on a file on the sidebar will display a table in the centre of the inde
 In the left-hand column the table (original file), any warnings raised by the SAS checkers are displayed below the line they are triggered by.
 
 The report index only displays files that contain at least one coding convention violation reported by the SAS checks run. All folders that SAS checks are run on are displayed, even if they contain no errors.
-
-Currently (August 2016) the index page has only been tested in the Firefox browser.
