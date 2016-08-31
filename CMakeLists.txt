@@ -48,6 +48,7 @@ option(FCCSW_CHECKERS "Turn on to activate FCCSW coding convention checkers." OF
 option(ROOT_CHECKERS "Turn on to activate ROOT coding convention checkers." OFF)
 option(GENERAL_CHECKERS "Turn on to activate general coding convention checkers." ON)
 option(EXAMPLE_CHECKERS "Turn on to activate SAS example checkers." OFF)
+option(ALL_CHECKERS "Turn on to activate all SAS checkers" OFF)
 
 add_subdirectory(src)
 
