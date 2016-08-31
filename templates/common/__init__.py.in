@@ -159,7 +159,14 @@ def _IsSourceFile(filename):
     fileExtension = os.path.splitext(filename)[1]
     return fileExtension in _SourceFilesExtensions
 
-def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, modernize_on=False, modernize_options="", sa_checkers=[], comparison_report_dir=""):
+def Analyze(command,
+    sa_clang_compiler,
+    do_not_compile=False,
+    format_on=False, modernize_on=False,
+    modernize_options="",
+    sa_checkers=[],
+    comparison_report_dir="",
+    source_dir=""):
     '''
     Perform static analysis and check of formatting rules if requested
     '''
@@ -189,6 +196,9 @@ def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, m
         output_type = "code formatting rules violation"
 
     if comparison_report_dir != "":
+        if source_dir == "":
+            print("Please specify the source directory")
+            return compilation_ret
         warning_file = os.path.join(comparison_report_dir, "checker_warnings.txt")
         with open(warning_file, "w+") as fobj:
             all_warnings = fobj.readlines() + checker_output.splitlines()
@@ -200,9 +210,9 @@ def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, m
         num_violations = _CompareFiles(source, result, output_type)
         html_diff_map = _ComparisonReport(source, result)
         if comparison_report_dir != "":
-            html_info = os.path.join(source, str(num_violations))
-            path_hash = base64.b64encode(html_info)
-            with open(os.path.join(comparison_report_dir, path_hash + ".html"), "w") as fobj:
+            relative_path = source.replace(source_dir, "").strip(os.sep)
+            html_filename = relative_path + ".html." + str(num_violations)
+            with open(os.path.join(comparison_report_dir, "html_diffs", html_filename), "w") as fobj:
                 fobj.write(html_diff_map)
 
     return compilation_ret

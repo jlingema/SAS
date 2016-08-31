@@ -21,6 +21,7 @@ if __name__ == "__main__":
     argparser.add_argument("--comparison_report_dir", type=str, default="", help="Path to the directory in which to generate comparison reports")
     argparser.add_argument("--ignore_dirs", type=str, default="", help="Directories to be omitted from SAS checks", nargs="*")
     argparser.add_argument("--do_not_compile", action="store_true", help="flag whether to use the clang compiler")
+    argparser.add_argument("--source_dir", type=str, default="", help="Path to the top-level source directory")
     args, compiler_args = argparser.parse_known_args()
     command = [SA_CLANG_CPP] + compiler_args
 
@@ -47,7 +48,7 @@ if __name__ == "__main__":
                     omit_checks = True
 
     if omit_checks:
-        retCode = common.Analyze(command, SA_CLANG_CPP, do_not_compile=args.do_not_compile)
+        retCode = common.Analyze(command, SA_CLANG_CPP, do_not_compile=args.do_not_compile, source_dir=args.source_dir)
     else:
         retCode = common.Analyze(command, SA_CLANG_CPP,
                                  format_on=args.check_format,
@@ -55,6 +56,7 @@ if __name__ == "__main__":
                                  modernize_options=args.modernize_options,
                                  sa_checkers=args.checkers,
                                  comparison_report_dir=args.comparison_report_dir,
+                                 source_dir=args.source_dir,
                                  do_not_compile=args.do_not_compile)
 
     sys.exit(retCode)
