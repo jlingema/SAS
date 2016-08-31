@@ -28,6 +28,7 @@ Clone the SAS repository and run the following:
 ```
 export SASBUILDDIR=[name for build directory]
 export SASINSTALLDIR=[name for install directory]
+export LLVM_DEV_DIR=[name of LLVM dev directory]
 mkdir $SASINSTALLDIR
 mkdir $SASBUILDDIR;cd $SASBUILDDIR
 cmake -DCMAKE_INSTALL_PREFIX="../$SASINSTALLDIR" ../SAS
