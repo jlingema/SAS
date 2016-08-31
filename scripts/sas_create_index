@@ -36,11 +36,10 @@ if __name__ == "__main__":
         source_path = os.path.join(args.source_dir, rel_path)
         if ".git" in path or ".svn" in path:
             continue
+        ignore = False
         for directory in args.ignore_dirs:
             if source_path.startswith(directory):
                 ignore = True
-            else:
-                ignore = False
         if ignore:
             continue
         if path == basedir:
