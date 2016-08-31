@@ -1,5 +1,5 @@
 # Using SAS
-This section assumes SAS has been installed as detailed in the [Building and Installing](README.md/#buildingAndInstalling) section of the SAS `README`.
+This section assumes SAS has been installed as detailed in the [Building and Installing](../README.md/#buildingAndInstalling) section of the SAS `README`.
 ## Running SAS on a single file
 The Python script `sas_check` in the `scripts` subfolder of the SAS install directory can be used to check a single source file or for coding convention violations. To run all enabled SAS checks on a file, use the command
 ```
