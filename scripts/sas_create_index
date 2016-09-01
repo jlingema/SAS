@@ -4,6 +4,14 @@ import datetime
 import argparse
 import base64
 import common
+import sys
+
+def sanitize_path(path):
+    sanitized_path = path.strip(os.sep)
+    sanitized_path = sanitized_path.replace(os.sep, "_")
+    sanitized_path = sanitized_path.replace(".", "")
+    return(sanitized_path)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Formatter summary creator", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -11,6 +19,9 @@ if __name__ == "__main__":
     parser.add_argument("report_dir", type=str, help='path to the report directory')
     parser.add_argument("--ignore_dirs", type=str, help="paths to directories to be ignored", nargs="+")
     args = parser.parse_args()
+
+    if os.path.isfile(os.path.join(args.report_dir, "index.html")):
+        sys.exit("Error: Report index already exists")
 
     with open(os.path.join(args.report_dir, "checker_warnings.txt"), "r") as fobj:
         checker_output = fobj.read()
@@ -24,12 +35,6 @@ if __name__ == "__main__":
     report_dir = os.path.abspath(args.report_dir.rstrip(os.sep))
     basedir = os.path.join(report_dir, "html_diffs")
     basedepth = len(basedir.split(os.sep))
-
-    def sanitize_path(path):
-        sanitized_path = path.strip(os.sep)
-        sanitized_path = sanitized_path.replace(os.sep, "_")
-        sanitized_path = sanitized_path.replace(".", "")
-        return(sanitized_path)
 
     for path, dirs, files in os.walk(basedir):
         rel_path = path.replace(basedir, "").strip(os.sep)
