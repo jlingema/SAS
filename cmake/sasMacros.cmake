@@ -96,7 +96,7 @@ macro(add_sas_test)
       set(MODERNIZE_ON "--modernize")
    endif(ARG_MODERNIZE)
 
-   set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/sas_check")
+   set(SAS_CMD "${CMAKE_BINARY_DIR}/scripts/sas_check++")
 
    set(FULL_FILENAME "${CMAKE_CURRENT_SOURCE_DIR}/${ARG_FILE}")
    if(ARG_SA_CONFIGURATION_FILE)

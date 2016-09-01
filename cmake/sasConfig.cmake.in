@@ -38,8 +38,9 @@ MACRO(enable_sas)
   CMAKE_PARSE_ARGUMENTS (ARG "FORMAT;MODERNIZE"
                         "COMPARISON_REPORT_DIR"
                         "DISABLE_CHECKERS;IGNORE_DIRS;MODERNIZE_OPTIONS" ${ARGN})
-  set(CMAKE_CXX_COMPILER ${sas_SCRIPT_DIR}/sas_check)
-  message(STATUS "sas enabled.")
+  set(CMAKE_CXX_COMPILER ${sas_SCRIPT_DIR}/sas_check++)
+  set(CMAKE_C_COMPILER ${sas_SCRIPT_DIR}/sas_check)
+  message(STATUS "Enabling SAS")
   add_definitions(--checkers="sas")
   add_definitions(--source_dir="${CMAKE_SOURCE_DIR}")
   if(ARG_COMPARISON_REPORT_DIR)
@@ -49,7 +50,6 @@ MACRO(enable_sas)
     set(sas_REPORT_DIR ${CMAKE_BINARY_DIR}/sasreport)
     add_definitions(--comparison_report_dir="${CMAKE_BINARY_DIR}/sasreport")
   endif(ARG_COMPARISON_REPORT_DIR)
-
   if(NOT EXISTS ${sas_REPORT_DIR})
     file(MAKE_DIRECTORY ${sas_REPORT_DIR})
   endif()
@@ -57,9 +57,8 @@ MACRO(enable_sas)
   file(COPY ${CMAKE_SOURCE_DIR}/ DESTINATION ${sas_REPORT_DIR}/html_diffs FILES_MATCHING REGEX ${CMAKE_BINARY_DIR} EXCLUDE REGEX ".^")
 
   file(WRITE ${sas_REPORT_DIR}/checker_warnings.txt "")
-
   if(ARG_MODERNIZE)
-    message(STATUS "Clang modernize ON")
+    message(STATUS " - Clang modernize ON")
     add_definitions(--modernize)
     if(ARG_MODERNIZE_OPTIONS)
       message(STATUS "Using modernize options: ${ARG_MODERNIZE_OPTIONS}")
@@ -68,7 +67,7 @@ MACRO(enable_sas)
   endif(ARG_MODERNIZE)
   if(ARG_FORMAT)
     set(FORMAT_ON "--check_format")
-    message(STATUS "Check-format ON")
+    message(STATUS " - Check-format ON")
     add_definitions(--check_format)
   endif(ARG_FORMAT)
   if(ARG_DISABLE_CHECKERS)
@@ -84,9 +83,10 @@ MACRO(enable_sas)
 
   #Generate html diffs for header files:
   file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR} "*.h" "*.hpp")
+  add_custom_target("sas.headers" ALL)
   foreach(HEADER_FILE ${HEADER_FILES})
-    string(REPLACE "/" "." NAME ${HEADER_FILE})
-    add_custom_target(${NAME} ALL
+    get_filename_component(EXTENSION ${HEADER_FILE} EXT)
+    add_custom_command(TARGET "sas.headers"
       COMMAND ${sas_SCRIPT_DIR}/sas_check
                     "${FORMAT_ON}"
                     "--ignore_dirs" ${IGNORE_DIRS}
@@ -95,4 +95,5 @@ MACRO(enable_sas)
                     "--source_dir" "${CMAKE_SOURCE_DIR}"
                     ${HEADER_FILE})
   endforeach()
+  message(STATUS " - Adding sas.headers target")
 ENDMACRO()
