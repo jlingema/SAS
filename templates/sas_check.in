@@ -44,7 +44,8 @@ if __name__ == "__main__":
                                  sa_checkers=args.checkers,
                                  comparison_report_dir=args.comparison_report_dir,
                                  source_dir=args.source_dir,
-                                 do_not_compile=args.do_not_compile)
+                                 do_not_compile=args.do_not_compile,
+                                 verbose=args.verbose)
 
     sys.exit(retCode)
 

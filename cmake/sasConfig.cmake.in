@@ -28,14 +28,16 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS( sas DEFAULT_MSG sas_LIBRARY_DIR sas_SCRIPT_DI
 # checkers without formatting or modernizing.
 # Arguments:
 # FORMAT: if present, clang-format is called
+# IGNORE_DIRS: Directories that SAS checks are not to be run on.
 # MODERNIZE: if present, clang-modernize is called with the options specified in MODERNIZE_OPTIONS
 # MODERNIZE_OPTIONS: command-line options to be passed to clang-modernize
 # COMPARISON_REPORT_DIR: the directory in which to place the comparison report files; if none is specified
 #   ${CMAKE_BINARY_DIR}/sasreport is used.
-# DISABLE_CHECKERS: names of checkers to be disabled, separated by ' '.
+# DISABLE_CHECKERS: names of checkers to be disabled.
+# VERBOSE: if present, a diff summarizing the format/modernize output is printed
 #-----------------------------------------------------------------------------------------------------------------------
 MACRO(enable_sas)
-  CMAKE_PARSE_ARGUMENTS (ARG "FORMAT;MODERNIZE"
+  CMAKE_PARSE_ARGUMENTS (ARG "FORMAT;MODERNIZE;VERBOSE"
                         "COMPARISON_REPORT_DIR"
                         "DISABLE_CHECKERS;IGNORE_DIRS;MODERNIZE_OPTIONS" ${ARGN})
   set(CMAKE_CXX_COMPILER ${sas_SCRIPT_DIR}/sas_check++)
@@ -78,6 +80,10 @@ MACRO(enable_sas)
   if(ARG_IGNORE_DIRS)
     list(APPEND IGNORE_DIRS ${ARG_IGNORE_DIRS})
   endif(ARG_IGNORE_DIRS)
+  if(ARG_VERBOSE)
+      add_definitions(--verbose)
+      set(VERBOSE "--verbose")
+  endif()
   add_definitions(--ignore_dirs ${IGNORE_DIRS})
   add_custom_target(report_index ${sas_SCRIPT_DIR}/sas_create_index ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR} "--ignore_dirs" ${IGNORE_DIRS})
 
@@ -89,6 +95,7 @@ MACRO(enable_sas)
     add_custom_command(TARGET "sas.headers"
       COMMAND ${sas_SCRIPT_DIR}/sas_check
                     "${FORMAT_ON}"
+                    "${VERBOSE}"
                     "--ignore_dirs" ${IGNORE_DIRS}
                     "--do_not_compile"
                     "--comparison_report_dir" "${sas_REPORT_DIR}"
