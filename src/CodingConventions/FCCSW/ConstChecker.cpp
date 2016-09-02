@@ -15,7 +15,7 @@ void ConstChecker::checkASTDecl(const clang::VarDecl* D,
                                 clang::ento::AnalysisManager& Mgr,
                                 clang::ento::BugReporter& BR) const {
   const char *reportDescription = "[sas.CodingConventions.FCCSW.Const] Constant variable names must begin with 'k' followed by an UpperCamelCase name.";
-  std::regex correctRegex("^k[A-Z][a-zA-Z0-9]+");
+  std::regex correctRegex("^k[A-Z][a-zA-Z0-9]*");
   auto nameString = D->getNameAsString();
   auto type = D->getType();
   if (D->isLocalVarDeclOrParm()) {

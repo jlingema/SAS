@@ -35,7 +35,7 @@ if __name__ == "__main__":
                     omit_checks = True
 
     if omit_checks:
-        retCode = common.Analyze(command, SA_CLANG_CPP, do_not_compile=args.do_not_compile)
+        retCode = common.Analyze(command, SA_CLANG_CPP, do_not_compile=args.do_not_compile, source_dir=args.source_dir)
     else:
         retCode = common.Analyze(command, SA_CLANG_CPP,
                                  format_on=args.check_format,
@@ -43,7 +43,9 @@ if __name__ == "__main__":
                                  modernize_options=args.modernize_options,
                                  sa_checkers=args.checkers,
                                  comparison_report_dir=args.comparison_report_dir,
-                                 do_not_compile=args.do_not_compile)
+                                 source_dir=args.source_dir,
+                                 do_not_compile=args.do_not_compile,
+                                 verbose=args.verbose)
 
     sys.exit(retCode)
 

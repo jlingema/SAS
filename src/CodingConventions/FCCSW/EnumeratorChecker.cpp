@@ -15,7 +15,7 @@ void EnumeratorChecker::checkASTDecl(const clang::EnumConstantDecl* D,
                                 clang::ento::AnalysisManager& Mgr,
                                 clang::ento::BugReporter& BR) const {
   const char *reportDescription = "[sas.CodingConventions.FCCSW.Enumerator] Enumerator variable names must begin with 'k' followed by an UpperCamelCase name.";
-  std::regex correctRegex("^k[A-Z][a-zA-Z0-9]+");
+  std::regex correctRegex("^k[A-Z][a-zA-Z0-9]*");
   auto nameString = D->getNameAsString();
 
 if (!std::regex_match(nameString, correctRegex)) {

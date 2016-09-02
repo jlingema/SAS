@@ -48,6 +48,7 @@ option(FCCSW_CHECKERS "Turn on to activate FCCSW coding convention checkers." OF
 option(ROOT_CHECKERS "Turn on to activate ROOT coding convention checkers." OFF)
 option(GENERAL_CHECKERS "Turn on to activate general coding convention checkers." ON)
 option(EXAMPLE_CHECKERS "Turn on to activate SAS example checkers." OFF)
+option(ALL_CHECKERS "Turn on to activate all SAS checkers" OFF)
 
 add_subdirectory(src)
 
@@ -73,6 +74,7 @@ add_clang_plugin(libSas
 
 file(COPY scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
 file(COPY config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_BINARY_DIR}/)
+file(COPY templates DESTINATION ${CMAKE_BINARY_DIR} FILES_MATCHING PATTERN "*.template")
 file(COPY templates/report_index.html.in DESTINATION ${CMAKE_BINARY_DIR}/html)
 file(COPY templates/report_footer.html DESTINATION ${CMAKE_BINARY_DIR}/html)
 
@@ -96,6 +98,7 @@ install(TARGETS libSas DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/scripts USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX} PATTERN "*.pyc" EXCLUDE)
 install(DIRECTORY ${CMAKE_BINARY_DIR}/config USE_SOURCE_PERMISSIONS DESTINATION ${CMAKE_INSTALL_PREFIX})
 install(DIRECTORY ${CMAKE_BINARY_DIR}/html DESTINATION ${CMAKE_INSTALL_PREFIX})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/templates DESTINATION ${CMAKE_INSTALL_PREFIX})
 
 # Remove persistent cached variables
 unset(checker_paths CACHE)
