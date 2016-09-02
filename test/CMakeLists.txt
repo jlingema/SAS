@@ -4,11 +4,11 @@ set(CTEST_BINARY_DIRECTORY "$ENV{CMAKE_BINARY_DIR}")
 set(CTEST_COMMAND "ctest")
 
 add_subdirectory(sas)
-if(ROOT_CHECKERS)
+if(ROOT_CHECKERS OR ALL_CHECKERS)
    add_subdirectory(BWList)
 endif()
 
-if(EXAMPLE_CHECKERS)
+if(EXAMPLE_CHECKERS OR ALL_CHECKERS)
   set(comment_checker_disabler_passregex ":18:1:.*NoUsingNamespaceInHeaders.*"
                                          ":19:1:.*NoUsingNamespaceInHeaders.*"
                                          ":17:3:.*Varname.*"

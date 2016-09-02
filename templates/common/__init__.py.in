@@ -47,10 +47,12 @@ def GetArgParser():
     argparser.add_argument("--checkers", type=str, default="", help="List of checkers", nargs="*")
     argparser.add_argument("--sa_configuration", type=str, default="", help="SA_CONFIGURATION file")
     argparser.add_argument("--disabled_checkers", type=str, default="", help="string of disabled checkers, separated by spaces", nargs="*")
+    argparser.add_argument("--source_dir", type=str, default="", help="Path to the top-level source directory")
     argparser.add_argument("--comparison_report_dir", type=str, default="", help="Path to the directory in which to generate comparison reports")
     argparser.add_argument("--ignore_dirs", type=str, default="", help="Directories to be omitted from SAS checks", nargs="*")
     argparser.add_argument("--do_not_compile", action="store_true", help="flag whether to use the clang compiler")
     argparser.add_argument("--file_list", type=str, help="flag whether to use the clang compiler", nargs="*")
+    argparser.add_argument("--verbose", action="store_true", help="Whether to print a diff of the clang format/modernize output")
     return argparser
 
 def _Purple(text):
@@ -125,7 +127,7 @@ def _Compare(filename, clangFormatOutput, difffunction):
                                         'Formatted File')
     return diffLinesGen
 
-def _CompareFiles(filename, clangFormatOutput, outputType):
+def _CompareFiles(filename, clangFormatOutput, outputType, verbose):
     '''
     Compare the formatted version of the file with the existing one.
     '''
@@ -140,7 +142,9 @@ def _CompareFiles(filename, clangFormatOutput, outputType):
     if nViolations >0 :
         plural = "" if nViolations == 1 else "s"
         print (_Bold(_Purple("warning:")), _Bold('%s %s%s detected.' %(nViolations,outputType,plural)), file=sys.stderr)
-        #print ("\n".join(diffLines), file=sys.stderr)
+        if verbose:
+            unfiedDiffLines = list(_Compare(filename, clangFormatOutput, difflib.unified_diff))
+            print ("\n".join(unfiedDiffLines), file=sys.stderr)
         return nViolations
     return nViolations
 
@@ -176,7 +180,15 @@ def _IsSourceFile(filename):
     fileExtension = os.path.splitext(filename)[1]
     return fileExtension in _SourceFilesExtensions
 
-def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, modernize_on=False, modernize_options="", sa_checkers=[], comparison_report_dir=""):
+def Analyze(command,
+    sa_clang_compiler,
+    do_not_compile=False,
+    format_on=False, modernize_on=False,
+    modernize_options="",
+    sa_checkers=[],
+    comparison_report_dir="",
+    source_dir="",
+    verbose=False):
     '''
     Perform static analysis and check of formatting rules if requested
     '''
@@ -205,22 +217,26 @@ def Analyze(command, sa_clang_compiler, do_not_compile=False, format_on=False, m
     elif format_on:
         output_type = "code formatting rules violation"
 
+    for source in sources:
+        print("Checking " + source)
+        result = _RunClangTools(source, modernize_on, format_on, modernize_options, "")
+        num_violations = _CompareFiles(source, result, output_type, verbose)
+        html_diff_map = _ComparisonReport(source, result)
+        if comparison_report_dir != "":
+            relative_path = source.replace(source_dir, "").strip(os.sep)
+            html_filename = relative_path + ".html." + str(num_violations)
+            with open(os.path.join(comparison_report_dir, "html_diffs", html_filename), "w") as fobj:
+                fobj.write(html_diff_map)
+
     if comparison_report_dir != "":
+        if source_dir == "":
+            print("Please specify the source directory")
+            return compilation_ret
         warning_file = os.path.join(comparison_report_dir, "checker_warnings.txt")
         with open(warning_file, "w+") as fobj:
             all_warnings = fobj.readlines() + checker_output.splitlines()
             unique_warnings = set(all_warnings)
             fobj.write("\n".join(unique_warnings))
-
-    for source in sources:
-        result = _RunClangTools(source, modernize_on, format_on, modernize_options, "")
-        num_violations = _CompareFiles(source, result, output_type)
-        html_diff_map = _ComparisonReport(source, result)
-        if comparison_report_dir != "":
-            html_info = os.path.join(source, str(num_violations))
-            path_hash = base64.b64encode(html_info)
-            with open(os.path.join(comparison_report_dir, path_hash + ".html"), "w") as fobj:
-                fobj.write(html_diff_map)
 
     return compilation_ret
 

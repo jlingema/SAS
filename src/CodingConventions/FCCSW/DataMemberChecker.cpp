@@ -15,7 +15,7 @@ void DataMemberChecker::checkASTDecl(const clang::FieldDecl* D,
                                 clang::ento::AnalysisManager& Mgr,
                                 clang::ento::BugReporter& BR) const {
   const char *reportDescription = "[sas.CodingConventions.FCCSW.DataMember] Data member variable names must begin with 'm_' followed by a lowerCamelCase name.";
-  std::regex correctRegex("^m_[a-z][a-zA-Z0-9]+");
+  std::regex correctRegex("^m_[a-z][a-zA-Z0-9]*");
   auto nameString = D->getNameAsString();
   auto parent = D->getParent();
 
