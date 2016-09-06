@@ -210,13 +210,15 @@ def Analyze(command,
         compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
 
     #Remove checker warnings from non-source files
-    source_dir_escaped = re.escape(source_dir)
-    warning_regex = re.compile("^" + source_dir_escaped + ".*warning")
     warning_lines = []
-    for line in checker_output.splitlines():
-        if warning_regex.search(line):
-            warning_lines.append(line)
-
+    if checker_output != "":
+        source_dir_escaped = re.escape(source_dir)
+        warning_regex = re.compile("^" + source_dir_escaped + ".*warning")
+        for line in checker_output.splitlines():
+            if warning_regex.search(line):
+                warning_lines.append(line)
+    else:
+        print("No checker warnings found")
 
     output_type = ""
     if modernize_on and format_on:
@@ -242,6 +244,7 @@ def Analyze(command,
             warning_filename = relative_path + ".txt"
             with open(os.path.join(comparison_report_dir, "html_diffs", warning_filename), "w") as fobj:
                 fobj.write("\n".join(warning_lines))
+
 
     return compilation_ret
 
@@ -318,3 +321,44 @@ def InsertHtmlLines(html_filename, warnings):
             if match.group(1) in warnings:
                 for warning in warnings[match.group(1)]:
                     print(html_tr.format(warning=warning)),
+
+def RunSasCheck(command, sa_clang_compiler, args):
+    '''
+    Compiles a file and runs SAS checks
+    '''
+    if args.checkers == ['']:
+        args.checkers = []
+
+    source_file_paths = []
+    for argument in command:
+        if _IsSourceFile(argument):
+            source_file_paths.append(argument)
+
+    if args.disabled_checkers:
+        for checker_name in args.disabled_checkers:
+            command += ["-Xclang", "-analyzer-disable-checker", "-Xclang", checker_name]
+
+    if args.sa_configuration:
+        os.environ["SA_CONFIGURATION"] = args.sa_configuration
+
+    omit_checks = False
+    if(args.ignore_dirs):
+        for directory in args.ignore_dirs:
+            for path in source_file_paths:
+                if path.startswith(directory):
+                    omit_checks = True
+
+    if omit_checks:
+        retCode = Analyze(command, sa_clang_compiler, do_not_compile=args.do_not_compile, source_dir=args.source_dir)
+    else:
+        retCode = Analyze(command, sa_clang_compiler,
+                                 format_on=args.check_format,
+                                 modernize_on=args.modernize,
+                                 modernize_options=args.modernize_options,
+                                 sa_checkers=args.checkers,
+                                 comparison_report_dir=args.comparison_report_dir,
+                                 source_dir=args.source_dir,
+                                 do_not_compile=args.do_not_compile,
+                                 verbose=args.verbose)
+
+    return retCode
