@@ -209,6 +209,15 @@ def Analyze(command,
     else:
         compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
 
+    #Remove checker warnings from non-source files
+    source_dir_escaped = re.escape(source_dir)
+    warning_regex = re.compile("^" + source_dir_escaped + ".*warning")
+    warning_lines = []
+    for line in checker_output.splitlines():
+        if warning_regex.search(line):
+            warning_lines.append(line)
+
+
     output_type = ""
     if modernize_on and format_on:
         output_type = "formatting/modernization change"
@@ -223,20 +232,16 @@ def Analyze(command,
         num_violations = _CompareFiles(source, result, output_type, verbose)
         html_diff_map = _ComparisonReport(source, result)
         if comparison_report_dir != "":
+            if source_dir == "":
+                print("Please specify the source directory")
+                return compilation_ret
             relative_path = source.replace(source_dir, "").strip(os.sep)
-            html_filename = relative_path + ".html." + str(num_violations)
+            html_filename = relative_path + "." + str(num_violations) + ".html"
             with open(os.path.join(comparison_report_dir, "html_diffs", html_filename), "w") as fobj:
                 fobj.write(html_diff_map)
-
-    if comparison_report_dir != "":
-        if source_dir == "":
-            print("Please specify the source directory")
-            return compilation_ret
-        warning_file = os.path.join(comparison_report_dir, "checker_warnings.txt")
-        with open(warning_file, "w+") as fobj:
-            all_warnings = fobj.readlines() + checker_output.splitlines()
-            unique_warnings = set(all_warnings)
-            fobj.write("\n".join(unique_warnings))
+            warning_filename = relative_path + ".txt"
+            with open(os.path.join(comparison_report_dir, "html_diffs", warning_filename), "w") as fobj:
+                fobj.write("\n".join(warning_lines))
 
     return compilation_ret
 

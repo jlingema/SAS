@@ -23,9 +23,9 @@ if __name__ == "__main__":
     if os.path.isfile(os.path.join(args.report_dir, "index.html")):
         sys.exit("Error: Report index already exists")
 
-    with open(os.path.join(args.report_dir, "checker_warnings.txt"), "r") as fobj:
-        checker_output = fobj.read()
-    warnings = common.ParseCheckerOutput(checker_output)
+    warnings = {}
+
+
 
     total_errors = 0
 
@@ -35,6 +35,14 @@ if __name__ == "__main__":
     report_dir = os.path.abspath(args.report_dir.rstrip(os.sep))
     basedir = os.path.join(report_dir, "html_diffs")
     basedepth = len(basedir.split(os.sep))
+
+    for path, dirs, files in os.walk(basedir):
+        txt_files = filter(lambda file: file.endswith(".txt"), files)
+        for file in txt_files:
+            with open(os.path.join(path, file), "r") as fobj:
+                checker_output = fobj.read()
+            file_warnings = common.ParseCheckerOutput(checker_output)
+            warnings.update(file_warnings)
 
     for path, dirs, files in os.walk(basedir):
         rel_path = path.replace(basedir, "").strip(os.sep)
@@ -66,25 +74,26 @@ if __name__ == "__main__":
         current_string = current_string.format(id=sanitize_path(path), name=os.path.basename(path), source_path="{"+sanitize_path(source_path)+"}")
         substrings.append(current_string)
         if len(files) != 0:
-            for file in files:
-                html_filename, num_violations_str = os.path.splitext(file)
+            html_files = filter(lambda file: file.endswith(".html"), files)
+            for file in html_files:
+                file_path = os.path.join(path, file)
+                file_info = os.path.splitext(file)[0]
+                filename, num_violations_str = os.path.splitext(file_info)
                 num_violations = int(num_violations_str.strip("."))
-                filename = os.path.splitext(html_filename)[0]
-                html_path = os.path.join("html_diffs", rel_path, file)
                 source_file = os.path.join(source_path, filename)
                 if source_file in warnings:
                     for line in warnings[source_file]:
                         num_violations += len(warnings[source_file][line])
-                    common.InsertHtmlLines(os.path.join(report_dir, html_path), warnings[source_file])
+                    common.InsertHtmlLines(file_path, warnings[source_file])
                 if num_violations == 0:
-                    os.remove(os.path.join(report_dir, html_path))
+                    os.remove(file_path)
                     continue
                 for key in violations_dict:
                     if key in sanitize_path(source_file):
                         violations_dict[key] += num_violations
                 violations_dict[sanitize_path(source_file)] = num_violations
                 total_errors += num_violations
-                substrings.append("<a class='list-group-item file-item' data-url='{html_file}'>{title}<span class='badge'>{source_file}</span></a>".format(html_file=html_path, title=filename, source_file="{"+sanitize_path(source_file)+"}"))
+                substrings.append("<a class='list-group-item file-item' data-url='{html_file}'>{title}<span class='badge'>{source_file}</span></a>".format(html_file=file_path, title=filename, source_file="{"+sanitize_path(source_file)+"}"))
 
     while depth > basedepth:
         substrings.append("</div>")

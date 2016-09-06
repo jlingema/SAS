@@ -58,7 +58,6 @@ MACRO(enable_sas)
 
   file(COPY ${CMAKE_SOURCE_DIR}/ DESTINATION ${sas_REPORT_DIR}/html_diffs FILES_MATCHING REGEX ${CMAKE_BINARY_DIR} EXCLUDE REGEX ".^")
 
-  file(WRITE ${sas_REPORT_DIR}/checker_warnings.txt "")
   if(ARG_MODERNIZE)
     message(STATUS " - Clang modernize ON")
     add_definitions(--modernize)
