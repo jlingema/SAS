@@ -85,6 +85,7 @@ MACRO(enable_sas)
   endif()
   add_definitions(--ignore_dirs ${IGNORE_DIRS})
   add_custom_target(report_index ${sas_SCRIPT_DIR}/sas_create_index ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR} "--ignore_dirs" ${IGNORE_DIRS})
+  add_custom_target(apply ${sas_SCRIPT_DIR}/sas_apply_changes ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR}/tempfiles)
 
   #Generate html diffs for header files:
   file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR} "*.h" "*.hpp")

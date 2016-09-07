@@ -25,8 +25,6 @@ if __name__ == "__main__":
 
     warnings = {}
 
-
-
     total_errors = 0
 
     substrings = []

@@ -228,9 +228,15 @@ def Analyze(command,
     elif format_on:
         output_type = "code formatting rules violation"
 
+    tempdir = ""
+    if comparison_report_dir != "":
+        tempdir = os.path.join(comparison_report_dir, "tempfiles")
+        if not os.path.isdir(tempdir):
+            os.mkdir(tempdir)
+
     for source in sources:
         print("Checking " + source)
-        result = _RunClangTools(source, modernize_on, format_on, modernize_options, "")
+        result = _RunClangTools(source, modernize_on=modernize_on, format_on=format_on, modernize_options=modernize_options, tempdir=tempdir)
         num_violations = _CompareFiles(source, result, output_type, verbose)
         html_diff_map = _ComparisonReport(source, result)
         if comparison_report_dir != "":
@@ -264,14 +270,18 @@ def CheckFormat(command, sa_clang_compiler):
     return returnVal, returnMap, output
 
 
-def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_options="", format_options=""):
+def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_options="", format_options="", tempdir=""):
     '''
     Run either or both of modernize and Clang Format and capture the output
     '''
     basename=os.path.basename(filename)
     tempname=basename[:basename.rfind('.')] + '.temp' + basename[basename.rfind('.'):]
-    dirname=os.path.dirname(filename)
-    tempfile=os.path.join(dirname, tempname)
+    keep_temp = False
+    if tempdir == "":
+        tempdir=os.path.dirname(filename)
+    else: #If a directory for temporary files is specified, they are not deleted so they can be used to apply changes
+        keep_temp = True
+    tempfile=os.path.join(tempdir, tempname)
 
     shutil.copyfile(filename, tempfile)
     modernize_options_list = modernize_options.split()
@@ -289,7 +299,8 @@ def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_opti
 
     with open(tempfile, "r") as fobj:
         result = fobj.read()
-    os.remove(tempfile)
+    if not keep_temp:
+        os.remove(tempfile)
 
     return result
 
