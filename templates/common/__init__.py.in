@@ -29,6 +29,7 @@ import base64
 import re
 import fileinput
 import argparse
+import glob
 
 
 _ClangFormatExeName="${CLANG_FORMAT_PATH}"
@@ -252,7 +253,7 @@ def Analyze(command,
                 fobj.write("\n".join(warning_lines))
 
 
-    return compilation_ret
+    return compilation_ret, checker_output
 
 
 def CheckFormat(command, sa_clang_compiler):
@@ -341,9 +342,13 @@ def RunSasCheck(command, sa_clang_compiler, args):
         args.checkers = []
 
     source_file_paths = []
+    compiler_args = []
     for argument in command:
         if _IsSourceFile(argument):
             source_file_paths.append(argument)
+        else:
+            compiler_args.append(argument)
+
 
     if args.disabled_checkers:
         for checker_name in args.disabled_checkers:
@@ -360,9 +365,9 @@ def RunSasCheck(command, sa_clang_compiler, args):
                     omit_checks = True
 
     if omit_checks:
-        retCode = Analyze(command, sa_clang_compiler, do_not_compile=args.do_not_compile, source_dir=args.source_dir)
+        retCode, checker_output = Analyze(command, sa_clang_compiler, do_not_compile=args.do_not_compile, source_dir=args.source_dir)
     else:
-        retCode = Analyze(command, sa_clang_compiler,
+        retCode, checker_output = Analyze(command, sa_clang_compiler,
                                  format_on=args.check_format,
                                  modernize_on=args.modernize,
                                  modernize_options=args.modernize_options,
@@ -371,5 +376,34 @@ def RunSasCheck(command, sa_clang_compiler, args):
                                  source_dir=args.source_dir,
                                  do_not_compile=args.do_not_compile,
                                  verbose=args.verbose)
+
+    outputLines = checker_output.splitlines()
+    source_includes = []
+    if "#include <...> search starts here:" in outputLines and "End of search list." in outputLines:
+        includes = outputLines[outputLines.index("#include <...> search starts here:") + 1:outputLines.index("End of search list.")]
+        for path in includes:
+            if path.strip().startswith(args.source_dir):
+                source_includes.append(path.strip())
+
+    source_headers = []
+    for name in source_includes:
+        for path, dirs, files in os.walk(name):
+            for file in files:
+                if _IsSourceFile(file):
+                      if args.comparison_report_dir != "":
+                          tempdir = os.path.join(args.comparison_report_dir, "tempfiles")
+                          tempname=file[:file.rfind('.')] + '.temp' + file[file.rfind('.'):]
+                          if os.path.isfile(os.path.join(tempdir, tempname)):
+                              continue
+                      source_headers.append(os.path.join(path, file))
+    for source_header in source_headers:
+        new_command = [sa_clang_compiler] + [source_header] + compiler_args
+        header_return, _ = Analyze(new_command, sa_clang_compiler,
+                                 format_on=args.check_format,
+                                 comparison_report_dir=args.comparison_report_dir,
+                                 source_dir=args.source_dir,
+                                 do_not_compile=True,
+                                 verbose=args.verbose)
+        retCode += header_return
 
     return retCode
