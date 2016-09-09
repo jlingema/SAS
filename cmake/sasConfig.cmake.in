@@ -86,21 +86,4 @@ MACRO(enable_sas)
   add_definitions(--ignore_dirs ${IGNORE_DIRS})
   add_custom_target(report_index ${sas_SCRIPT_DIR}/sas_create_index ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR} "--ignore_dirs" ${IGNORE_DIRS})
   add_custom_target(apply ${sas_SCRIPT_DIR}/sas_apply_changes ${CMAKE_SOURCE_DIR} ${sas_REPORT_DIR}/tempfiles)
-
-  #Generate html diffs for header files:
-  # file(GLOB_RECURSE HEADER_FILES ${CMAKE_SOURCE_DIR} "*.h" "*.hpp")
-  # add_custom_target("sas.headers" ALL)
-  # foreach(HEADER_FILE ${HEADER_FILES})
-  #   get_filename_component(EXTENSION ${HEADER_FILE} EXT)
-  #   add_custom_command(TARGET "sas.headers"
-  #     COMMAND ${sas_SCRIPT_DIR}/sas_check
-  #                   "${FORMAT_ON}"
-  #                   "${VERBOSE}"
-  #                   "--ignore_dirs" ${IGNORE_DIRS}
-  #                   "--do_not_compile"
-  #                   "--comparison_report_dir" "${sas_REPORT_DIR}"
-  #                   "--source_dir" "${CMAKE_SOURCE_DIR}"
-  #                   ${HEADER_FILE})
-  # endforeach()
-  # message(STATUS " - Adding sas.headers target")
 ENDMACRO()
