@@ -15,6 +15,8 @@ The following optional arguments can be passed to `sas_check` (see `sas_check --
 * `--modernize`: If present, `clang-modernize` is run on source and header files, checking for possible use of modern (post C++11) language constructs. If `--modernize_options` are specified, these will be used; if not `clang-modernize [source file]` will be run, running all clang-modernize checks (see [clang-modernize](http://manpages.ubuntu.com/manpages/trusty/man1/clang-modernize-3.4.1.html) documentation for more information).
 * `--modernize_options`: A string containing the command-line options to be passed to `clang-modernize`, e.g. `-risk=safe -loop-convert` (See [Clang](http://manpages.ubuntu.com/manpages/trusty/man1/clang-modernize-3.4.1.html) documentation for more information). The command `clang-modernize [modernize_options] [source file]` is run on the source file.
 * `--sa_configuration`: Path to a json file containing information for [blacklisting/whitelisting](#BWList) checkers.
+* `--source_dir`: Path to the top-level source directory; this must be present in order to generate a comparison report.
+* `--verbose`: If present, the output of clang-modernize and clang-format (if applicable) is printed to the console in a unified diff form.
 
 Any additional arguments passed to the script will be passed directly to the Clang++ compiler; see [Clang](http://clang.llvm.org/docs/CommandGuide/clang.html) documentation pages for more information.
 
@@ -36,6 +38,14 @@ The following options may be passed to `enable_sas()`:
 * `IGNORE_DIRS`: one or more absolute paths to subdirectories of the project source directory on which SAS checks are not to be run. These directories are still compiled, but no SAS checks are run at compile time, and they are omitted from the report index. The CMake binary directory is automatically ignored.
 * `MODERNIZE`: If present, `clang-modernize` is run on source and header files, checking for possible use of modern (post C++11) language constructs. If `MODERNIZE_OPTIONS` are specified, these will be used; if not `clang-modernize [source file]` will be run, running all clang-modernize checks (see [Clang](http://manpages.ubuntu.com/manpages/trusty/man1/clang-modernize-3.4.1.html) documentation for more information). `clang-modernize` is not run on header files.
 * `MODERNIZE_OPTIONS`: A string containing the command-line options to be passed to `clang-modernize`. Ignored if `MODERNIZE` flag not present. The command `clang-modernize [MODERNIZE_OPTIONS] [source file]` is run on each source file. See [Clang](http://manpages.ubuntu.com/manpages/trusty/man1/clang-modernize-3.4.1.html) documentation for more information.
+* `VERBOSE`: If present, the output of clang-modernize and clang-format (if applicable) is printed to the console in a unified diff form.
+
+### Applying Changes
+In order to apply all clang-modernize and/or clang-format transformations found after SAS has been run, the command
+```
+make apply
+```
+can be used. This will overwrite all files with clang-modernize or clang-format transformations available and cannot be undone. 
 
 ###Examples
 Run SAS on all project directories except directories named `ignore1` and `ignore2`:

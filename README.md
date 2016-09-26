@@ -66,6 +66,18 @@ make report_index
 ```
 will generate an [HTML index](documentation/report_index.md) displaying the files containing coding convention violations and detailing the errors found.
 
+# Known Issues
+* When running CMake, an error
+'''
+You have changed variables that require your cache to be deleted.
+Configure will be re-run and you may have to reset some variables.
+'''
+may be raised. If this occurs, add the arguments
+'''
+-DCMAKE_CXX_COMPILER=`which sas_check++` -DCMAKE_C_COMPILER=`which sas_check`
+'''
+to the CMake command.
+
 # <a id="creditAndHistory"></a> Credit and History
 SAS originates from an effort within the CMS collaboration at CERN and quite some checkers were imported from CMSSW (http://cms-sw.github.io/). CMSSSW and its authors cannot be blamed by any mistake or bug present in SAS :-) The credit of single developers is preserved within the single source files. The first version of SAS was created by F. Bartek, D. Piparo and T. Hauth.
 
@@ -73,7 +85,7 @@ Implementation of running SAS through CMake and FCCSW naming convention checkers
 
 The HTML summary page relies on bootstrap and hightlight js (see below for links).
 
-# Useful Links:
+# Useful Links
 * LLVM:                  http://llvm.org
 * Clang:                 http://clang.llvm.org
 * Clang Static Analyzer: http://clang-analyzer.llvm.org

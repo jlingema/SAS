@@ -29,6 +29,7 @@ import base64
 import re
 import fileinput
 import argparse
+import glob
 
 
 _ClangFormatExeName="${CLANG_FORMAT_PATH}"
@@ -209,6 +210,17 @@ def Analyze(command,
     else:
         compilation_ret, checker_output = _WrapClangCommand(command, sa_clang_compiler, sa_checkers)
 
+    #Remove checker warnings from non-source files
+    warning_lines = []
+    if checker_output != "":
+        source_dir_escaped = re.escape(source_dir)
+        warning_regex = re.compile("^" + source_dir_escaped + ".*warning")
+        for line in checker_output.splitlines():
+            if warning_regex.search(line):
+                warning_lines.append(line)
+    else:
+        print("No checker warnings found")
+
     output_type = ""
     if modernize_on and format_on:
         output_type = "formatting/modernization change"
@@ -217,28 +229,31 @@ def Analyze(command,
     elif format_on:
         output_type = "code formatting rules violation"
 
+    tempdir = ""
+    if comparison_report_dir != "":
+        tempdir = os.path.join(comparison_report_dir, "tempfiles")
+        if not os.path.isdir(tempdir):
+            os.mkdir(tempdir)
+
     for source in sources:
         print("Checking " + source)
-        result = _RunClangTools(source, modernize_on, format_on, modernize_options, "")
+        result = _RunClangTools(source, modernize_on=modernize_on, format_on=format_on, modernize_options=modernize_options, tempdir=tempdir)
         num_violations = _CompareFiles(source, result, output_type, verbose)
         html_diff_map = _ComparisonReport(source, result)
         if comparison_report_dir != "":
+            if source_dir == "":
+                print("Please specify the source directory")
+                return compilation_ret
             relative_path = source.replace(source_dir, "").strip(os.sep)
-            html_filename = relative_path + ".html." + str(num_violations)
+            html_filename = relative_path + "." + str(num_violations) + ".html"
             with open(os.path.join(comparison_report_dir, "html_diffs", html_filename), "w") as fobj:
                 fobj.write(html_diff_map)
+            warning_filename = relative_path + ".txt"
+            with open(os.path.join(comparison_report_dir, "html_diffs", warning_filename), "w") as fobj:
+                fobj.write("\n".join(warning_lines))
 
-    if comparison_report_dir != "":
-        if source_dir == "":
-            print("Please specify the source directory")
-            return compilation_ret
-        warning_file = os.path.join(comparison_report_dir, "checker_warnings.txt")
-        with open(warning_file, "w+") as fobj:
-            all_warnings = fobj.readlines() + checker_output.splitlines()
-            unique_warnings = set(all_warnings)
-            fobj.write("\n".join(unique_warnings))
 
-    return compilation_ret
+    return compilation_ret, checker_output
 
 
 def CheckFormat(command, sa_clang_compiler):
@@ -256,14 +271,18 @@ def CheckFormat(command, sa_clang_compiler):
     return returnVal, returnMap, output
 
 
-def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_options="", format_options=""):
+def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_options="", format_options="", tempdir=""):
     '''
     Run either or both of modernize and Clang Format and capture the output
     '''
     basename=os.path.basename(filename)
     tempname=basename[:basename.rfind('.')] + '.temp' + basename[basename.rfind('.'):]
-    dirname=os.path.dirname(filename)
-    tempfile=os.path.join(dirname, tempname)
+    keep_temp = False
+    if tempdir == "":
+        tempdir=os.path.dirname(filename)
+    else: #If a directory for temporary files is specified, they are not deleted so they can be used to apply changes
+        keep_temp = True
+    tempfile=os.path.join(tempdir, tempname)
 
     shutil.copyfile(filename, tempfile)
     modernize_options_list = modernize_options.split()
@@ -281,7 +300,8 @@ def _RunClangTools(filename, modernize_on=False, format_on=False, modernize_opti
 
     with open(tempfile, "r") as fobj:
         result = fobj.read()
-    os.remove(tempfile)
+    if not keep_temp:
+        os.remove(tempfile)
 
     return result
 
@@ -313,3 +333,77 @@ def InsertHtmlLines(html_filename, warnings):
             if match.group(1) in warnings:
                 for warning in warnings[match.group(1)]:
                     print(html_tr.format(warning=warning)),
+
+def RunSasCheck(command, sa_clang_compiler, args):
+    '''
+    Compiles a file and runs SAS checks
+    '''
+    if args.checkers == ['']:
+        args.checkers = []
+
+    source_file_paths = []
+    compiler_args = []
+    for argument in command:
+        if _IsSourceFile(argument):
+            source_file_paths.append(argument)
+        else:
+            compiler_args.append(argument)
+
+
+    if args.disabled_checkers:
+        for checker_name in args.disabled_checkers:
+            command += ["-Xclang", "-analyzer-disable-checker", "-Xclang", checker_name]
+
+    if args.sa_configuration:
+        os.environ["SA_CONFIGURATION"] = args.sa_configuration
+
+    omit_checks = False
+    if(args.ignore_dirs):
+        for directory in args.ignore_dirs:
+            for path in source_file_paths:
+                if path.startswith(directory):
+                    omit_checks = True
+
+    if omit_checks:
+        retCode, checker_output = Analyze(command, sa_clang_compiler, do_not_compile=args.do_not_compile, source_dir=args.source_dir)
+    else:
+        retCode, checker_output = Analyze(command, sa_clang_compiler,
+                                 format_on=args.check_format,
+                                 modernize_on=args.modernize,
+                                 modernize_options=args.modernize_options,
+                                 sa_checkers=args.checkers,
+                                 comparison_report_dir=args.comparison_report_dir,
+                                 source_dir=args.source_dir,
+                                 do_not_compile=args.do_not_compile,
+                                 verbose=args.verbose)
+
+    outputLines = checker_output.splitlines()
+    source_includes = []
+    if "#include <...> search starts here:" in outputLines and "End of search list." in outputLines:
+        includes = outputLines[outputLines.index("#include <...> search starts here:") + 1:outputLines.index("End of search list.")]
+        for path in includes:
+            if path.strip().startswith(args.source_dir):
+                source_includes.append(path.strip())
+
+    source_headers = []
+    for name in source_includes:
+        for path, dirs, files in os.walk(name):
+            for file in files:
+                if _IsSourceFile(file):
+                      if args.comparison_report_dir != "":
+                          tempdir = os.path.join(args.comparison_report_dir, "tempfiles")
+                          tempname=file[:file.rfind('.')] + '.temp' + file[file.rfind('.'):]
+                          if os.path.isfile(os.path.join(tempdir, tempname)):
+                              continue
+                      source_headers.append(os.path.join(path, file))
+    for source_header in source_headers:
+        new_command = [sa_clang_compiler] + [source_header] + compiler_args
+        header_return, _ = Analyze(new_command, sa_clang_compiler,
+                                 format_on=args.check_format,
+                                 comparison_report_dir=args.comparison_report_dir,
+                                 source_dir=args.source_dir,
+                                 do_not_compile=True,
+                                 verbose=args.verbose)
+        retCode += header_return
+
+    return retCode
