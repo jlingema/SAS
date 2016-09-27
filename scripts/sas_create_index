@@ -20,9 +20,6 @@ if __name__ == "__main__":
     parser.add_argument("--ignore_dirs", type=str, help="paths to directories to be ignored", nargs="+")
     args = parser.parse_args()
 
-    if os.path.isfile(os.path.join(args.report_dir, "index.html")):
-        sys.exit("Error: Report index already exists")
-
     warnings = {}
 
     total_errors = 0
@@ -41,9 +38,11 @@ if __name__ == "__main__":
                 checker_output = fobj.read()
             file_warnings = common.ParseCheckerOutput(checker_output)
             warnings.update(file_warnings)
+            os.remove(os.path.join(path, file))
 
     for path, dirs, files in os.walk(basedir):
         rel_path = path.replace(basedir, "").strip(os.sep)
+        rel_html_path = path.replace(report_dir, "")
         source_path = os.path.join(args.source_dir, rel_path)
         ignore = False
         if ".git" in path or ".svn" in path:
@@ -74,7 +73,8 @@ if __name__ == "__main__":
         if len(files) != 0:
             html_files = filter(lambda file: file.endswith(".html"), files)
             for file in html_files:
-                file_path = os.path.join(path, file)
+                html_file_path = os.path.join(rel_html_path, file).lstrip(os.sep)
+                full_file_path = os.path.join(path, file)
                 file_info = os.path.splitext(file)[0]
                 filename, num_violations_str = os.path.splitext(file_info)
                 num_violations = int(num_violations_str.strip("."))
@@ -82,16 +82,16 @@ if __name__ == "__main__":
                 if source_file in warnings:
                     for line in warnings[source_file]:
                         num_violations += len(warnings[source_file][line])
-                    common.InsertHtmlLines(file_path, warnings[source_file])
+                    common.InsertHtmlLines(full_file_path, warnings[source_file])
                 if num_violations == 0:
-                    os.remove(file_path)
+                    os.remove(full_file_path)
                     continue
                 for key in violations_dict:
                     if key in sanitize_path(source_file):
                         violations_dict[key] += num_violations
                 violations_dict[sanitize_path(source_file)] = num_violations
                 total_errors += num_violations
-                substrings.append("<a class='list-group-item file-item' data-url='{html_file}'>{title}<span class='badge'>{source_file}</span></a>".format(html_file=file_path, title=filename, source_file="{"+sanitize_path(source_file)+"}"))
+                substrings.append("<a class='list-group-item file-item' data-url='./{html_file}'>{title}<span class='badge'>{source_file}</span></a>".format(html_file=html_file_path, title=filename, source_file="{"+sanitize_path(source_file)+"}"))
 
     while depth > basedepth:
         substrings.append("</div>")

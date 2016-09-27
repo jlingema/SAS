@@ -66,6 +66,7 @@ add_clang_plugin(libSas
    ${checker_paths}
    src/ClangSasCheckerPluginRegister.cpp
    src/SasException.cpp
+   src/IncludeDumper.cpp
 #   src/CatchAll.cpp
    src/CommentCheckerDisabler.cpp
    src/jsonxx.cc
