@@ -41,11 +41,11 @@ The following options may be passed to `enable_sas()`:
 * `VERBOSE`: If present, the output of clang-modernize and clang-format (if applicable) is printed to the console in a unified diff form.
 
 ### Applying Changes
-In order to apply all clang-modernize and/or clang-format transformations found after SAS has been run, the command
+**WARNING** this is very experimental. This command will override your source files, so only use with caution! In order to apply all clang-modernize and/or clang-format transformations found after SAS has been run, the command
 ```
 make apply
 ```
-can be used. This will overwrite all files with clang-modernize or clang-format transformations available and cannot be undone. 
+can be used. This will overwrite all files with clang-modernize or clang-format transformations available and cannot be undone.
 
 ###Examples
 Run SAS on all project directories except directories named `ignore1` and `ignore2`:
