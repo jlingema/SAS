@@ -10,7 +10,7 @@ SA_CLANG = "${CLANG_PATH}"  # note: this is system specific and set in cmake
 if __name__ == "__main__":
     argparser = common.GetArgParser()
     args, compiler_args = argparser.parse_known_args()
-    command = [SA_CLANG] + compiler_args + ["-v"]
+    command = [SA_CLANG] + compiler_args
 
     retCode = common.RunSasCheck(command, SA_CLANG, args)
     sys.exit(retCode)
