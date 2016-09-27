@@ -39,7 +39,7 @@ replacing the square-bracketed terms with approprate names.
 This installs SAS with the default checkers (general coding conventions, thread-safety and performance) enabled.
 
 The following CMake options can be used to enable further checkers:
-* `-DFCCSW_CHECKERS=ON`: enable FCCSW naming convention checkers (see [FCCSW documentation](https://github.com/jlingema/FCCSW/blob/master/doc/CppCodingStyleGuidelines.md))
+* `-DFCCSW_CHECKERS=ON`: enable FCCSW naming convention checkers (see [FCCSW documentation](https://github.com/HEP-FCC/FCCSW/blob/master/doc/CppCodingStyleGuidelines.md))
 * `-DROOT_CHECKERS=ON`: enable ROOT naming convention checkers (see [ROOT/Taligent documentation](https://root.cern.ch/TaligentDocs/TaligentOnline/DocumentRoot/1.0/Docs/books/WM/WM_63.html))
 * `-DEXAMPLE_CHECKERS=ON`: enable the example checker (checks that variable names begin with a capital letter)
 
