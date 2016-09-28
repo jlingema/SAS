@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+import os
+import argparse
+import shutil
+import sys
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser("Applies formatting changes given a source directory and a directory containing temporary formatted files",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("source_dir", type=str, help="Path to the source directory")
+    parser.add_argument("temp_dir", type=str, help="Path to directory containing formatted files")
+    args = parser.parse_args()
+
+    valid_responses = {"yes": True, "y": True, "no": False, "n": False}
+    unsure = True
+    while unsure:
+        sys.stdout.write("This will apply formatting/modernize changes to all source files and cannot be undone. Do you want to continue? (y/n)\n")
+        response = raw_input().lower()
+        if response in valid_responses:
+            if valid_responses[response] == True:
+                unsure = False
+                continue
+            else:
+                unsure = False
+                sys.exit()
+        else:
+            sys.stdout.write("Invalid response: please enter y/n\n")
+            continue
+
+
+    tempfiles = os.listdir(args.temp_dir)
+    formatted_file_names = map(lambda string: string.replace(".temp", ""), tempfiles)
+    for path, dirs, files in os.walk(args.source_dir):
+        for filename in files:
+            tempname=filename[:filename.rfind('.')] + '.temp' + filename[filename.rfind('.'):]
+            if tempname in os.listdir(args.temp_dir):
+                print("Changes applied to " + os.path.join(path, filename))
+                shutil.copyfile(os.path.join(args.temp_dir, tempname), os.path.join(path, filename))

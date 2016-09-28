@@ -12,40 +12,5 @@ if __name__ == "__main__":
     args, compiler_args = argparser.parse_known_args()
     command = [SA_CLANG] + compiler_args
 
-    if args.checkers == ['']:
-        args.checkers = []
-
-    source_file_paths = []
-    for argument in compiler_args:
-        if common._IsSourceFile(argument):
-            source_file_paths.append(argument)
-
-    if args.disabled_checkers:
-        for checker_name in args.disabled_checkers:
-            command += ["-Xclang", "-analyzer-disable-checker", "-Xclang", checker_name]
-
-    if args.sa_configuration:
-        os.environ["SA_CONFIGURATION"] = args.sa_configuration
-
-    omit_checks = False
-    if(args.ignore_dirs):
-        for directory in args.ignore_dirs:
-            for path in source_file_paths:
-                if path.startswith(directory):
-                    omit_checks = True
-
-    if omit_checks:
-        retCode = common.Analyze(command, SA_CLANG_CPP, do_not_compile=args.do_not_compile, source_dir=args.source_dir)
-    else:
-        retCode = common.Analyze(command, SA_CLANG_CPP,
-                                 format_on=args.check_format,
-                                 modernize_on=args.modernize,
-                                 modernize_options=args.modernize_options,
-                                 sa_checkers=args.checkers,
-                                 comparison_report_dir=args.comparison_report_dir,
-                                 source_dir=args.source_dir,
-                                 do_not_compile=args.do_not_compile,
-                                 verbose=args.verbose)
-
+    retCode = common.RunSasCheck(command, SA_CLANG, args)
     sys.exit(retCode)
-

@@ -19,8 +19,9 @@ macro(add_clang_plugin name)
    foreach (user_lib ${USER_LIBS})
       target_link_libraries( ${name} ${user_lib} )
    endforeach()
-   target_link_libraries(${name} ${LLVM_LIBS_CORE} ${CLANG_LIBS} ${LLVM_LIBS_SYS})
-
+   if (APPLE) # this was needed on MacOS 10.10?
+      target_link_libraries(${name} ${LLVM_LIBS_CORE} ${CLANG_LIBS} ${LLVM_LIBS_SYS})
+   endif(APPLE)
    install(TARGETS ${name} DESTINATION lib)
 
    set_target_properties( ${name} PROPERTIES
