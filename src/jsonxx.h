@@ -200,24 +200,24 @@ class Value {
     type_ = BOOL_;
     bool_value_ = b;
   }
-#define $number(TYPE) \
+#define _number(TYPE) \
   void import( const TYPE &n ) { \
     reset(); \
     type_ = NUMBER_; \
     number_value_ = static_cast<long double>(n); \
   }
-  $number( char )
-  $number( int )
-  $number( long )
-  $number( long long )
-  $number( unsigned char )
-  $number( unsigned int )
-  $number( unsigned long )
-  $number( unsigned long long )
-  $number( float )
-  $number( double )
-  $number( long double )
-#undef $number
+  _number( char )
+  _number( int )
+  _number( long )
+  _number( long long )
+  _number( unsigned char )
+  _number( unsigned int )
+  _number( unsigned long )
+  _number( unsigned long long )
+  _number( float )
+  _number( double )
+  _number( long double )
+#undef _number
 #if JSONXX_COMPILER_HAS_CXX11 > 0
   void import( const std::nullptr_t & ) {
     reset();
@@ -382,7 +382,7 @@ const T& Object::get(const std::string& key, const typename identity<T>::type& d
     return default_value;
   }
 }
-    
+
 template<>
 inline bool Value::is<Value>() const {
     return true;
@@ -417,12 +417,12 @@ template<>
 inline bool Value::is<Object>() const {
   return type_ == OBJECT_;
 }
-    
+
 template<>
 inline Value& Value::get<Value>() {
     return *this;
 }
-    
+
 template<>
 inline const Value& Value::get<Value>() const {
     return *this;
