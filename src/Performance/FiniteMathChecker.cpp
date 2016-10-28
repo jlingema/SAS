@@ -21,7 +21,7 @@ namespace sas {
              !II->isStr("__isnan") && !II->isStr("__isinf") &&
              !II->isStr("__isnanf") && !II->isStr("__isinff")) return;
 
-         clang::ento::ExplodedNode *N = C.generateSink();
+         clang::ento::ExplodedNode *N = C.generateErrorNode();
          if (!N) return;
 
          const char* msg = "[sas.Performance.FiniteMathChecker] The function isnan/isinf does not work when fast-math is enabled. Please check the bits of the floating point number instead.";

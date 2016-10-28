@@ -93,9 +93,9 @@ public:
       if(bw.isDisabled()) return;
       if (auto errorNode = C.addTransition()) {
          auto bt = new clang::ento::BugType(this, Traits::BugName, Traits::BugCategory);
-         auto br = new clang::ento::BugReport(*bt, msg, errorNode);
+         auto br = llvm::make_unique<clang::ento::BugReport>(*bt, msg, errorNode);
          br->addRange(E->getSourceRange());
-         C.emitReport(br);
+         C.emitReport(std::move(br));
       }
    }
 };

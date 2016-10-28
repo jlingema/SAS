@@ -49,7 +49,7 @@ class InclusionDump : public clang::ASTConsumer {
 class InclusionDumpAction : public clang::PluginASTAction {
   public:
     InclusionDumpAction() : m_dirMask("") {}
-    bool ParseArgs(const clang::CompilerInstance &CI, const std::vector<std::string>& args);
+    virtual bool ParseArgs(const clang::CompilerInstance &CI, const std::vector<std::string>& args) override;
 
   protected:
     std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &CI,
